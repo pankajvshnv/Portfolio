@@ -1,0 +1,167 @@
+{% extends "base.html" %}
+
+{% block content %}
+<section id="admin" class="code-section">
+  <div class="code-content full">
+    
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+      <h2 class="section-title">Admin Dashboard</h2>
+      <a href="{{ url_for('logout') }}" class="btn btn-editor-outline">Logout</a>
+    </div>
+
+    {% with messages = get_flashed_messages(with_categories=true) %}
+      {% if messages %}
+        {% for category, message in messages %}
+          <div style="padding: 15px; margin-bottom: 20px; border-radius: 4px; font-weight: bold; background: {% if category == 'success' %}#4ec9b020{% else %}#ff555520{% endif %}; color: {% if category == 'success' %}#4ec9b0{% else %}#ff5555{% endif %}; border: 1px solid {% if category == 'success' %}#4ec9b0{% else %}#ff5555{% endif %};">
+            {{ message }}
+          </div>
+        {% endfor %}
+      {% endif %}
+    {% endwith %}
+
+    <div class="admin-tabs" style="display: flex; gap: 10px; margin-bottom: 20px; border-bottom: 1px solid var(--border); padding-bottom: 10px; overflow-x: auto;">
+      <button class="btn btn-editor-outline active-tab" onclick="openTab('tab-profile')">About Profile</button>
+      <button class="btn btn-editor-outline" onclick="openTab('tab-projects')">Projects</button>
+      <button class="btn btn-editor-outline" onclick="openTab('tab-skills')">Skills</button>
+      <button class="btn btn-editor-outline" onclick="openTab('tab-experience')">Experience</button>
+    </div>
+
+    <!-- PROFILE TAB -->
+    <div id="tab-profile" class="admin-tab-content">
+      <h3 style="color: var(--text); margin-bottom: 15px;">Edit Profile</h3>
+      <form action="{{ url_for('admin_profile') }}" method="POST" style="display: flex; flex-direction: column; gap: 15px;">
+        <div><label>Name</label><input type="text" name="name" value="{{ profile.name }}" style="width: 100%; padding: 8px; background: var(--bg-dark); border: 1px solid var(--border); color: var(--text);" required></div>
+        <div><label>Role</label><input type="text" name="role" value="{{ profile.role }}" style="width: 100%; padding: 8px; background: var(--bg-dark); border: 1px solid var(--border); color: var(--text);" required></div>
+        <div><label>Location</label><input type="text" name="location" value="{{ profile.location }}" style="width: 100%; padding: 8px; background: var(--bg-dark); border: 1px solid var(--border); color: var(--text);" required></div>
+        <div><label>Email</label><input type="text" name="email" value="{{ profile.email }}" style="width: 100%; padding: 8px; background: var(--bg-dark); border: 1px solid var(--border); color: var(--text);" required></div>
+        <div><label>GitHub URL</label><input type="text" name="github" value="{{ profile.github }}" style="width: 100%; padding: 8px; background: var(--bg-dark); border: 1px solid var(--border); color: var(--text);"></div>
+        <div><label>LinkedIn URL</label><input type="text" name="linkedin" value="{{ profile.linkedin }}" style="width: 100%; padding: 8px; background: var(--bg-dark); border: 1px solid var(--border); color: var(--text);"></div>
+        <div><label>Resume URL</label><input type="text" name="resume_url" value="{{ profile.resume_url }}" style="width: 100%; padding: 8px; background: var(--bg-dark); border: 1px solid var(--border); color: var(--text);"></div>
+        <div><label>Short Bio</label><textarea name="bio_short" rows="3" style="width: 100%; padding: 8px; background: var(--bg-dark); border: 1px solid var(--border); color: var(--text);" required>{{ profile.bio_short }}</textarea></div>
+        <div><label>Long Bio</label><textarea name="bio_long" rows="4" style="width: 100%; padding: 8px; background: var(--bg-dark); border: 1px solid var(--border); color: var(--text);" required>{{ profile.bio_long }}</textarea></div>
+        <button type="submit" class="btn btn-editor-primary">Save Profile</button>
+      </form>
+    </div>
+
+    <!-- PROJECTS TAB -->
+    <div id="tab-projects" class="admin-tab-content" style="display: none;">
+      <h3 style="color: var(--text); margin-bottom: 15px;">Add New Project</h3>
+      <form action="{{ url_for('admin_projects') }}" method="POST" style="display: flex; flex-direction: column; gap: 15px; margin-bottom: 40px; border: 1px solid var(--border); padding: 20px;">
+        <input type="hidden" name="action" value="add">
+        <div><label>File Name</label><input type="text" name="name" placeholder="E.g. Trading_Bot.py" style="width: 100%; padding: 8px; background: var(--bg-dark); border: 1px solid var(--border); color: var(--text);" required></div>
+        <div><label>Title</label><input type="text" name="title" placeholder="Project Title" style="width: 100%; padding: 8px; background: var(--bg-dark); border: 1px solid var(--border); color: var(--text);" required></div>
+        <div><label>Description</label><textarea name="desc" placeholder="Project description..." style="width: 100%; padding: 8px; background: var(--bg-dark); border: 1px solid var(--border); color: var(--text);" required></textarea></div>
+        <div><label>Image URL (Optional)</label><input type="text" name="image_url" placeholder="https://example.com/image.png" style="width: 100%; padding: 8px; background: var(--bg-dark); border: 1px solid var(--border); color: var(--text);"></div>
+        <div><label>Tech Stack (comma separated)</label><input type="text" name="stack" placeholder="Python, React, Node.js" style="width: 100%; padding: 8px; background: var(--bg-dark); border: 1px solid var(--border); color: var(--text);" required></div>
+        <div><label>GitHub URL (Optional)</label><input type="text" name="github" placeholder="https://github.com/..." style="width: 100%; padding: 8px; background: var(--bg-dark); border: 1px solid var(--border); color: var(--text);"></div>
+        <div><label>Demo URL (Optional)</label><input type="text" name="demo" placeholder="https://demo.com/..." style="width: 100%; padding: 8px; background: var(--bg-dark); border: 1px solid var(--border); color: var(--text);"></div>
+        <button type="submit" class="btn btn-editor-primary">Add Project</button>
+      </form>
+
+      <h3 style="color: var(--text); margin-bottom: 15px;">Existing Projects</h3>
+      <div style="display: flex; flex-direction: column; gap: 15px;">
+        {% for project in projects %}
+        <div style="border: 1px solid var(--border); padding: 15px; display: flex; justify-content: space-between; align-items: center;">
+          <div>
+            <h4 style="color: var(--string);">{{ project.title }}</h4>
+            <p style="color: var(--text-muted); font-size: 0.9em;">{{ project.name }}</p>
+          </div>
+          <form action="{{ url_for('admin_projects') }}" method="POST" onsubmit="return confirm('Delete this project?');">
+            <input type="hidden" name="action" value="delete">
+            <input type="hidden" name="id" value="{{ project.id }}">
+            <button type="submit" class="btn" style="background: #ff5555; border: none; padding: 5px 15px; color: white;">Delete</button>
+          </form>
+        </div>
+        {% endfor %}
+      </div>
+    </div>
+
+    <!-- SKILLS TAB -->
+    <div id="tab-skills" class="admin-tab-content" style="display: none;">
+      <h3 style="color: var(--text); margin-bottom: 15px;">Add New Skill</h3>
+      <form action="{{ url_for('admin_skills') }}" method="POST" style="display: flex; flex-direction: column; gap: 15px; margin-bottom: 40px; border: 1px solid var(--border); padding: 20px;">
+        <input type="hidden" name="action" value="add">
+        <div><label>Skill Name</label><input type="text" name="name" placeholder="E.g. Python" style="width: 100%; padding: 8px; background: var(--bg-dark); border: 1px solid var(--border); color: var(--text);" required></div>
+        <div>
+          <label>Icon URL (SVG preferred)</label>
+          <input type="text" name="icon" placeholder="https://cdn.jsdelivr.net/gh/devicons/..." style="width: 100%; padding: 8px; background: var(--bg-dark); border: 1px solid var(--border); color: var(--text);" required>
+          <p style="color: var(--text-muted); font-size: 0.8em; margin-top: 5px;">Find icons at: <a href="https://devicon.dev/" target="_blank" style="color: var(--link);">devicon.dev</a></p>
+        </div>
+        <button type="submit" class="btn btn-editor-primary">Add Skill</button>
+      </form>
+
+      <h3 style="color: var(--text); margin-bottom: 15px;">Existing Skills</h3>
+      <div style="display: flex; flex-wrap: wrap; gap: 10px;">
+        {% for skill in skills %}
+        <div style="border: 1px solid var(--border); padding: 10px; display: flex; align-items: center; gap: 10px; background: var(--bg-dark);">
+          <img src="{{ skill.icon }}" alt="{{ skill.name }}" width="20" height="20">
+          <span style="color: var(--text);">{{ skill.name }}</span>
+          <form action="{{ url_for('admin_skills') }}" method="POST" onsubmit="return confirm('Delete {{ skill.name }}?');" style="margin-left: 10px;">
+            <input type="hidden" name="action" value="delete">
+            <input type="hidden" name="id" value="{{ skill.id }}">
+            <button type="submit" style="background: none; border: none; color: #ff5555; cursor: pointer; font-weight: bold;">✕</button>
+          </form>
+        </div>
+        {% endfor %}
+      </div>
+    </div>
+
+    <!-- EXPERIENCE TAB -->
+    <div id="tab-experience" class="admin-tab-content" style="display: none;">
+      <h3 style="color: var(--text); margin-bottom: 15px;">Add New Experience</h3>
+      <form action="{{ url_for('admin_experience') }}" method="POST" style="display: flex; flex-direction: column; gap: 15px; margin-bottom: 40px; border: 1px solid var(--border); padding: 20px;">
+        <input type="hidden" name="action" value="add">
+        <div><label>Company</label><input type="text" name="company" placeholder="Tradeaura Research" style="width: 100%; padding: 8px; background: var(--bg-dark); border: 1px solid var(--border); color: var(--text);" required></div>
+        <div><label>Overall Period</label><input type="text" name="period" placeholder="Jul 2021 — Present" style="width: 100%; padding: 8px; background: var(--bg-dark); border: 1px solid var(--border); color: var(--text);" required></div>
+        <div><label>Location</label><input type="text" name="location" placeholder="Indore, India · Hybrid" style="width: 100%; padding: 8px; background: var(--bg-dark); border: 1px solid var(--border); color: var(--text);" required></div>
+        <hr style="border: none; border-top: 1px dashed var(--border); margin: 10px 0;">
+        <p style="color: var(--text-muted);">Initial Role (you can add more roles later in the JSON manually, or just use one for now)</p>
+        <div><label>Role Title</label><input type="text" name="role_title" placeholder="Senior Developer" style="width: 100%; padding: 8px; background: var(--bg-dark); border: 1px solid var(--border); color: var(--text);" required></div>
+        <div><label>Role Period</label><input type="text" name="role_period" placeholder="May 2022 - Present" style="width: 100%; padding: 8px; background: var(--bg-dark); border: 1px solid var(--border); color: var(--text);" required></div>
+        <button type="submit" class="btn btn-editor-primary">Add Experience</button>
+      </form>
+
+      <h3 style="color: var(--text); margin-bottom: 15px;">Existing Experience</h3>
+      <div style="display: flex; flex-direction: column; gap: 15px;">
+        {% for exp in experience %}
+        <div style="border: 1px solid var(--border); padding: 15px; display: flex; justify-content: space-between; align-items: center;">
+          <div>
+            <h4 style="color: var(--string);">{{ exp.company }}</h4>
+            <p style="color: var(--text-muted); font-size: 0.9em;">{{ exp.period }}</p>
+          </div>
+          <form action="{{ url_for('admin_experience') }}" method="POST" onsubmit="return confirm('Delete this experience?');">
+            <input type="hidden" name="action" value="delete">
+            <input type="hidden" name="id" value="{{ exp.id }}">
+            <button type="submit" class="btn" style="background: #ff5555; border: none; padding: 5px 15px; color: white;">Delete</button>
+          </form>
+        </div>
+        {% endfor %}
+      </div>
+    </div>
+
+  </div>
+</section>
+
+<style>
+  .admin-tabs label {
+    display: block;
+    margin-bottom: 5px;
+    color: var(--kw);
+    font-size: 0.9em;
+  }
+  .active-tab {
+    background: var(--kw) !important;
+    color: var(--bg) !important;
+    border-color: var(--kw) !important;
+  }
+</style>
+
+<script>
+  function openTab(tabId) {
+    document.querySelectorAll('.admin-tab-content').forEach(el => el.style.display = 'none');
+    document.querySelectorAll('.admin-tabs button').forEach(el => el.classList.remove('active-tab'));
+    document.getElementById(tabId).style.display = 'block';
+    event.target.classList.add('active-tab');
+  }
+</script>
+{% endblock %}

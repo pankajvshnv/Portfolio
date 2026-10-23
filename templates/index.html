@@ -1,0 +1,235 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div id="main-content">
+<section id="about" class="code-section">
+
+  <div class="code-content full">
+    <p class="code-comment"># about.py</p>
+    <p class="code-line"><span class="kw">class</span> <span class="cls">Developer</span>:</p>
+    <div class="code-indent" style="display: flex; justify-content: space-between; align-items: flex-start; gap: 60px; flex-wrap: nowrap;">
+      
+      <div class="hero-left" style="flex: 1; min-width: 0;">
+        <h1 class="hero-name">{{ profile.name }}</h1>
+        <p class="hero-role"><span class="kw">self</span>.role = <span class="str">"{{ profile.role }}"</span></p>
+        <p class="hero-bio" style="white-space: pre-wrap; font-family: var(--font-mono); font-size: 0.85em; line-height: 1.8; color: var(--text-muted);">{{ profile.bio_long }}</p>
+
+        <div class="hero-actions">
+          <a href="{{ profile.resume_url }}" class="btn btn-editor-primary">Download Résumé</a>
+          <a href="#contact" class="btn btn-editor-outline">Get In Touch</a>
+        </div>
+
+        <div class="hero-meta" style="display: flex; flex-wrap: wrap; gap: 20px;">
+          <span style="display: flex; align-items: center; gap: 6px; color: var(--text-muted);">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path><circle cx="12" cy="10" r="3"></circle></svg>
+            {{ profile.location }}
+          </span>
+          <span style="display: flex; align-items: center; gap: 6px; color: var(--text-muted);">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"></path><polyline points="22,6 12,13 2,6"></polyline></svg>
+            {{ profile.email }}
+          </span>
+          <span style="display: flex; align-items: center; gap: 6px;">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="color: var(--text-muted);"><path d="M9 19c-5 1.5-5-2.5-7-3m14 6v-3.87a3.37 3.37 0 0 0-.94-2.61c3.14-.35 6.44-1.54 6.44-7A5.44 5.44 0 0 0 20 4.77 5.07 5.07 0 0 0 19.91 1S18.73.65 16 2.48a13.38 13.38 0 0 0-7 0C6.27.65 5.09 1 5.09 1A5.07 5.07 0 0 0 5 4.77a5.44 5.44 0 0 0-1.5 3.78c0 5.42 3.3 6.61 6.44 7A3.37 3.37 0 0 0 9 18.13V22"></path></svg>
+            <a href="{{ profile.github }}" class="meta-link">GitHub</a>
+          </span>
+          <span style="display: flex; align-items: center; gap: 6px;">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="color: var(--text-muted);"><path d="M16 8a6 6 0 0 1 6 6v7h-4v-7a2 2 0 0 0-2-2 2 2 0 0 0-2 2v7h-4v-7a6 6 0 0 1 6-6z"></path><rect x="2" y="9" width="4" height="12"></rect><circle cx="4" cy="4" r="2"></circle></svg>
+            <a href="{{ profile.linkedin }}" class="meta-link">LinkedIn</a>
+          </span>
+        </div>
+      </div>
+      
+      <div class="hero-right" style="flex-shrink: 0; padding-right: 20px;">
+        <img src="{{ url_for('static', filename='img/profile.jpg') }}" alt="{{ profile.name }}" style="width: 250px; height: 250px; object-fit: cover; border: 2px solid var(--border);">
+      </div>
+
+    </div>
+  </div>
+</section>
+
+<section id="projects" class="code-section">
+  <div class="code-content full">
+    <p class="code-comment"># projects.py — a few things I've shipped</p>
+    <p class="code-line" style="margin-bottom: 10px;"><span class="kw">def</span> <span class="func">featured_projects</span>():</p>
+    <div class="code-indent">
+      <p class="code-line" style="margin-bottom: 20px;"><span class="kw">return</span> [</p>
+      <div class="code-indent">
+    <div class="row g-4 project-grid">
+      {% for project in projects %}
+      <div class="col-md-6 col-lg-4">
+        <div class="project-card">
+          <div class="project-card-head">
+            <span class="dot red"></span><span class="dot yellow"></span><span class="dot green"></span>
+            <span class="project-filename">{{ project.name }}</span>
+          </div>
+          <div class="project-card-body">
+            <h3>{{ project.title }}</h3>
+            <p class="short-desc">{{ project.desc }}</p>
+            <div class="stack-tags">
+              {% for skill in project.stack %}<span class="tag">{{ skill }}</span>{% endfor %}
+            </div>
+          </div>
+          <div class="project-card-foot">
+            <button onclick="openProject('{{ project.id }}', '{{ project.name }}')" class="btn btn-editor-outline" style="width: 100%; border: 1px dashed var(--border);">View Details</button>
+          </div>
+        </div>
+      </div>
+      {% endfor %}
+    </div>
+      </div>
+      <p class="code-line" style="margin-top: 20px;">]</p>
+    </div>
+  </div>
+</section>
+
+
+<section id="skills" class="code-section">
+  <div class="code-content full">
+    <p class="code-comment"># skills.py</p>
+    <p class="code-line" style="margin-bottom: 10px;"><span class="kw">def</span> <span class="func">load_skills</span>():</p>
+    <div class="code-indent">
+      <p class="code-line" style="margin-bottom: 20px;"><span class="kw">self</span>.tech_stack = {</p>
+      <div class="code-indent">
+        <div class="skills-grid-modern">
+      {% for item in skills %}
+      <div class="skill-card-modern">
+        <div class="skill-card-name">{{ item.name }}</div>
+        <div class="skill-card-icon">
+          <img src="{{ item.icon }}" alt="{{ item.name }}" onerror="this.onerror=null; this.src='https://cdn.jsdelivr.net/gh/devicons/devicon@latest/icons/devicon/devicon-original.svg'" />
+        </div>
+      </div>
+      {% endfor %}
+    </div>
+      </div>
+      <p class="code-line" style="margin-top: 20px;">}</p>
+    </div>
+  </div>
+</section>
+
+<section id="experience" class="code-section">
+  <div class="code-content full">
+    <p class="code-comment"># experience.py</p>
+    <p class="code-line" style="margin-bottom: 10px;"><span class="kw">def</span> <span class="func">get_experience</span>():</p>
+    <div class="code-indent">
+      <p class="code-line" style="margin-bottom: 20px;"><span class="kw">return</span> [</p>
+      <div class="code-indent">
+        <div class="experience-list-modern">
+      {% for company in experience %}
+      <div class="exp-item {% if loop.index == 1 %}exp-active{% endif %}">
+        <div class="exp-period">{{ company.period }}</div>
+        <div class="exp-details">
+          <img src="/company-image/{{ company.company_b64 }}.png?v=5" alt="Company" class="company-canvas" />
+          <p class="exp-location">{{ company.location }}</p>
+          <div class="exp-roles">
+            {% for role in company.roles %}
+            <div class="exp-role">
+              <span class="role-title">• {{ role.title }}</span>
+              <span class="role-period">{{ role.period }}</span>
+            </div>
+            {% endfor %}
+          </div>
+        </div>
+      </div>
+      {% endfor %}
+    </div>
+      </div>
+      <p class="code-line" style="margin-top: 20px;">]</p>
+    </div>
+  </div>
+</section>
+
+<section id="contact" class="code-section">
+  <div class="code-content full">
+    
+    <p class="code-comment"># contact.py</p>
+    <p class="code-line" style="font-size: 1.5em; margin-top: 10px;"><span class="kw">class</span> <span class="cls">ContactMe</span>:</p>
+    <div class="code-indent">
+      <p class="code-line" style="margin-top: 15px;"><span class="kw">def</span> <span class="func">send_message</span>(<span class="kw">self</span>):</p>
+      <div class="code-indent" style="max-width: 600px; margin-top: 20px;">
+        <p class="code-comment" style="margin-bottom: 20px;"># Fill out the form below</p>
+        
+        <form class="contact-form-modern" action="/contact" method="POST">
+          
+          {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+              {% for category, message in messages %}
+                <div style="padding: 15px; margin-bottom: 20px; border-radius: 4px; font-weight: bold; background: {% if category == 'success' %}#4ec9b020{% else %}#ff555520{% endif %}; color: {% if category == 'success' %}#4ec9b0{% else %}#ff5555{% endif %}; border: 1px solid {% if category == 'success' %}#4ec9b0{% else %}#ff5555{% endif %};">
+                  {{ message }}
+                </div>
+              {% endfor %}
+            {% endif %}
+          {% endwith %}
+
+          <div class="form-row">
+            <div class="form-group">
+              <label>First name*</label>
+              <input type="text" name="first_name" placeholder="Mazakine" required>
+            </div>
+            <div class="form-group">
+              <label>Last name*</label>
+              <input type="text" name="last_name" placeholder="Reed" required>
+            </div>
+          </div>
+          
+          <div class="form-group">
+            <label>Email address*</label>
+            <input type="email" name="email" placeholder="example@gmail.com" required>
+          </div>
+          
+          <div class="form-group">
+            <label>Subject*</label>
+            <input type="text" name="subject" placeholder="Tell us the purpose" required>
+          </div>
+          
+          <div class="form-group">
+            <label>Message</label>
+            <textarea name="message" rows="4" placeholder="Write your message here" required></textarea>
+          </div>
+          
+          <button type="submit" class="btn-submit-modern">Send message</button>
+        </form>
+      </div>
+    </div>
+
+  </div>
+</section>
+</div> <!-- end main-content -->
+
+<!-- Project Views Container -->
+<div id="project-content" style="display: none; width: 100%; max-width: 900px; margin: 0 auto; padding: 40px 20px;">
+  {% for project in projects %}
+  <div id="project-view-{{ project.id }}" class="project-view" style="display: none; padding: 0 10px;">
+    <div style="padding: 10px 0 40px 0;">
+      <p class="code-comment" style="margin-bottom: 15px;"># {{ project.name }}</p>
+      
+      <h2 style="color: var(--func); margin: 0 0 20px 0; font-family: var(--font-mono); font-size: 1.8em;">{{ project.title }}</h2>
+
+      {% if project.image_url and project.image_url != '' %}
+      <div style="margin-bottom: 30px; border-radius: 8px; overflow: hidden; border: 1px solid var(--border);">
+        <img src="{{ project.image_url }}" alt="{{ project.title }}" style="width: 100%; display: block;">
+      </div>
+      {% endif %}
+
+      <div style="color: var(--text); line-height: 1.8; font-size: 1.05em; margin-bottom: 30px;">
+        {{ project.desc }}
+      </div>
+      
+      <div class="stack-tags" style="margin-bottom: 30px; padding: 15px 20px; background: rgba(0,0,0,0.2); border-radius: 6px; border: 1px solid var(--border-soft);">
+        <span style="color: var(--kw); font-size: 0.9em; margin-right: 10px; font-family: var(--font-mono);">tech_stack =</span>
+        {% for skill in project.stack %}<span class="tag" style="background: var(--bg-hover);">"{{ skill }}"</span>{% endfor %}
+      </div>
+
+      <div style="display: flex; gap: 15px; margin-top: 20px;">
+        {% if project.github and project.github != '#' and project.github.strip() != '' %}
+        <a href="{{ project.github }}" class="btn btn-editor-primary" target="_blank">↗ Code Repository</a>
+        {% endif %}
+        {% if project.demo and project.demo != '#' and project.demo.strip() != '' %}
+        <a href="{{ project.demo }}" class="btn btn-editor-outline" target="_blank">↗ Live Demo</a>
+        {% endif %}
+      </div>
+    </div>
+  </div>
+  {% endfor %}
+</div>
+
+{% endblock %}
