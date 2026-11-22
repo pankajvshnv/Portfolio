@@ -2,22 +2,13 @@
 # Domain: pankajbairagi.dev & www.pankajbairagi.dev
 
 pankajbairagi.dev, www.pankajbairagi.dev {
-    # Automatic HTTPS (Let's Encrypt / ZeroSSL) - Mandatory for .dev TLDs
+    tls internal
     encode gzip zstd
 
-    # Serve static files directly through Caddy for maximum speed
-    handle_path /static/* {
-        root * /var/www/portfolio/static
-        file_server
-    }
-
-    # Reverse proxy all requests to FastAPI / Uvicorn
-    handle {
-        reverse_proxy 127.0.0.1:8000 {
-            header_up Host {host}
-            header_up X-Real-IP {remote_host}
-            header_up X-Forwarded-For {remote_host}
-            header_up X-Forwarded-Proto {scheme}
-        }
+    reverse_proxy 127.0.0.1:8000 {
+        header_up Host {host}
+        header_up X-Real-IP {remote_host}
+        header_up X-Forwarded-For {remote_host}
+        header_up X-Forwarded-Proto {scheme}
     }
 }
