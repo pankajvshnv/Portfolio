@@ -61,8 +61,20 @@ jobs:
 
             # 6. Verify container health
             echo "⏳ Checking container status..."
-            sleep 3
-            curl -f -I http://127.0.0.1:8000/ || (echo "❌ Container failed health check" && docker logs portfolio_app && exit 1)
+            healthy=false
+            for i in $(seq 1 30); do
+              if curl -fsS http://127.0.0.1:8000/ >/dev/null; then
+                healthy=true
+                break
+              fi
+              sleep 1
+            done
+            if [ "$healthy" != "true" ]; then
+              echo "❌ Container failed health check"
+              docker ps -a
+              docker logs portfolio_app
+              exit 1
+            fi
 
             # 7. Reload Caddy reverse proxy
             sudo systemctl reload caddy 2>/dev/null || true
