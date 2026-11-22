@@ -1,119 +1,631 @@
 <!doctype html>
 <html lang="en">
+
 <head>
-<meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
-<title>{{ profile.name }} — {{ profile.role }}</title>
-<meta name="description" content="{{ profile.bio_short }}">
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>{{ profile.name }} — {{ profile.role }}</title>
+  <meta name="description" content="{{ profile.bio_short }}">
 
 <link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Inter+Tight:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
-<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
-<link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
-<style>
-/* ── Network-graph hero overlay ─────────────────────────────────── */
-#about {
-  overflow: hidden;
-}
-#network-canvas {
-  display: block;
-  opacity: 1;
-}
-/* subtle scanline depth effect */
-#about::after {
-  content: '';
-  position: absolute;
-  inset: 0;
-  background: repeating-linear-gradient(
-    0deg,
-    transparent,
-    transparent 3px,
-    rgba(0,0,0,0.06) 3px,
-    rgba(0,0,0,0.06) 4px
-  );
-  pointer-events: none;
-  z-index: 0;
-}
-</style>
+<link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}?v=2026f">
 </head>
-<body>
 
-<div class="ide-shell">
+<body class="ai-collapsed {% block body_class %}{% endblock %}">
 
-  <!-- Activity bar -->
-  <div class="activity-bar">
-    <div class="activity-icon active" title="Explorer">
-      <svg width="20" height="20" viewBox="0 0 24 24" fill="none"><path d="M3 7a2 2 0 0 1 2-2h4l2 2h8a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V7Z" stroke="currentColor" stroke-width="1.6"/></svg>
-    </div>
-    <div class="activity-icon" title="Search">
-      <svg width="20" height="20" viewBox="0 0 24 24" fill="none"><circle cx="11" cy="11" r="6.5" stroke="currentColor" stroke-width="1.6"/><path d="m20 20-3.2-3.2" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg>
-    </div>
-    <div class="activity-icon" title="Source control">
-      <svg width="20" height="20" viewBox="0 0 24 24" fill="none"><circle cx="6" cy="6" r="2.2" stroke="currentColor" stroke-width="1.6"/><circle cx="6" cy="18" r="2.2" stroke="currentColor" stroke-width="1.6"/><circle cx="18" cy="6" r="2.2" stroke="currentColor" stroke-width="1.6"/><path d="M6 8.2V15.8M8.2 6H14a4 4 0 0 1 4 4" stroke="currentColor" stroke-width="1.6"/></svg>
-    </div>
-    <div class="activity-icon" title="Run">
-      <svg width="20" height="20" viewBox="0 0 24 24" fill="none"><path d="M6 4.5v15l14-7.5-14-7.5Z" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/></svg>
-    </div>
+  <!-- Ambient Cyber Glows -->
+  <div class="ambient">
+    <div class="glow a"></div>
+    <div class="glow b"></div>
   </div>
 
-  <!-- Sidebar: explorer -->
-  <aside class="sidebar" id="sidebar">
-    <div class="sidebar-header">Explorer</div>
-    <div class="sidebar-project">▾ {{ profile.name|lower|replace(" ", "-") }}-portfolio</div>
-    <nav class="file-tree" id="file-tree">
-      <a href="#about" class="file-item" data-section="about"><span class="file-icon py">●</span>about.py</a>
-      <a href="#projects" class="file-item" data-section="projects"><span class="file-icon py">●</span>projects.py</a>
-      <a href="#skills" class="file-item" data-section="skills"><span class="file-icon py">●</span>skills.py</a>
-      <a href="#experience" class="file-item" data-section="experience"><span class="file-icon py">●</span>experience.py</a>
-      <a href="#contact" class="file-item" data-section="contact"><span class="file-icon sh">$</span>contact.sh</a>
-    </nav>
+  <div class="window-shell">
 
-    <div class="sidebar-footer">
-      <div class="status-line">
-        <span class="status-dot"></span>{{ profile.status }}
+    <!-- ░░ macOS Window Header (Traffic lights + Title + Layout Controls) ░░ -->
+    <header class="window-topbar">
+      <div class="window-traffic-lights">
+        <span class="mac-dot mac-red" title="Close"></span>
+        <span class="mac-dot mac-yellow" title="Minimize"></span>
+        <span class="mac-dot mac-green" title="Maximize"></span>
       </div>
-      <div class="status-line muted">{{ profile.location }}</div>
-      <div class="status-line muted" id="local-clock">--:--:--</div>
-    </div>
-  </aside>
-
-  <!-- Main editor column -->
-  <div class="editor-column">
-
-    <!-- Tab bar -->
-    <div class="tab-bar" id="tab-bar">
-      <a href="#about" class="tab active" data-section="about">about.py</a>
-      <a href="#projects" class="tab" data-section="projects">projects.py</a>
-      <a href="#skills" class="tab" data-section="skills">skills.py</a>
-      <a href="#experience" class="tab" data-section="experience">experience.py</a>
-      <a href="#contact" class="tab" data-section="contact">contact.sh</a>
-    </div>
-
-    <!-- Breadcrumb -->
-    <div class="breadcrumb">
-      <span id="breadcrumb-text">portfolio &gt; about.py</span>
-    </div>
-
-    <main class="editor-pane" style="display: flex; align-items: flex-start;">
-      <div id="global-line-gutter" class="line-gutter"></div>
-      <div class="content-wrapper" style="flex: 1; padding-bottom: 60px;">
-        {% block content %}{% endblock %}
+      <div class="window-nav">
+        <button class="win-nav-btn" onclick="window.history.back()" title="Go Back">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"
+            stroke-linecap="round" stroke-linejoin="round">
+            <path d="m15 18-6-6 6-6" />
+          </svg>
+        </button>
+        <button class="win-nav-btn" onclick="window.history.forward()" title="Go Forward">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"
+            stroke-linecap="round" stroke-linejoin="round">
+            <path d="m9 18 6-6-6-6" />
+          </svg>
+        </button>
       </div>
-    </main>
 
-    <!-- Status bar -->
-    <div class="status-bar">
-      <span>🐍 Python</span>
-      <span>UTF-8</span>
-      <span>Ln 1, Col 1</span>
-      <span class="status-bar-right">{{ profile.email }}</span>
+      <div class="window-title-text" id="window-title-text">portfolio — about.py</div>
+
+      <div class="window-layout-controls">
+        <button class="win-layout-btn" id="toggle-sidebar-btn" title="Toggle Primary Sidebar (⌘B)">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"
+            stroke-linecap="round" stroke-linejoin="round">
+            <rect x="3" y="3" width="18" height="18" rx="2" />
+            <path d="M9 3v18" />
+          </svg>
+        </button>
+        <button class="win-layout-btn active" id="toggle-terminal-btn" title="Toggle Panel (Terminal) (⌘J)"
+          onclick="window.toggleTerminal()">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"
+            stroke-linecap="round" stroke-linejoin="round">
+            <rect x="3" y="3" width="18" height="18" rx="2" />
+            <path d="M3 15h18" />
+          </svg>
+        </button>
+        <button class="win-layout-btn" id="toggle-ai-layout-btn" title="Toggle AI Copilot"
+          onclick="window.toggleChat()">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"
+            stroke-linecap="round" stroke-linejoin="round">
+            <rect x="3" y="3" width="18" height="18" rx="2" />
+            <path d="M15 3v18" />
+          </svg>
+        </button>
+      </div>
+    </header>
+
+    <div class="ide-shell">
+
+      <!-- ░░ Activity Bar (Far Left Strip) ░░ -->
+      <div class="activity-bar">
+        <!-- Explorer Files -->
+        <div class="activity-icon active" title="Explorer (⇧⌘E)" data-pane="explorer" id="act-explorer">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"
+            stroke-linecap="round" stroke-linejoin="round">
+            <rect x="7" y="3" width="13" height="15" rx="1.5" />
+            <path d="M4 7.5v12A1.5 1.5 0 0 0 5.5 21h12" />
+          </svg>
+        </div>
+        <!-- Search -->
+        <div class="activity-icon" title="Search (⇧⌘F)">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6">
+            <circle cx="11" cy="11" r="6.5" />
+            <path d="m20 20-3.2-3.2" stroke-linecap="round" />
+          </svg>
+        </div>
+        <!-- Source Control (Git with badge 24) -->
+        <div class="activity-icon" title="Source Control (⌃⇧G)">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"
+            stroke-linecap="round" stroke-linejoin="round">
+            <circle cx="6" cy="6" r="2.5" />
+            <circle cx="6" cy="18" r="2.5" />
+            <circle cx="18" cy="9" r="2.5" />
+            <path d="M6 8.5v7" />
+            <path d="M8.5 6h3a4 4 0 0 1 4 4v-1" />
+          </svg>
+          <span class="activity-badge">24</span>
+        </div>
+        <!-- Run & Debug -->
+        <div class="activity-icon" title="Run and Debug (⇧⌘D)">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"
+            stroke-linecap="round" stroke-linejoin="round">
+            <path d="M7 4.5v9l7-4.5-7-4.5z" />
+            <path d="M15 11.5a3.5 3.5 0 0 1 3.5 3.5v2a3.5 3.5 0 0 1-7 0v-2a3.5 3.5 0 0 1 3.5-3.5" />
+            <path d="M12 15h6M11.5 18h7M13 11.5l-1.5-2M17 11.5l1.5-2" />
+          </svg>
+        </div>
+        <!-- Extensions (4 squares) -->
+        <div class="activity-icon" title="Extensions (⇧⌘X)">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"
+            stroke-linecap="round" stroke-linejoin="round">
+            <rect x="3" y="3" width="7" height="7" rx="1" />
+            <rect x="3" y="14" width="7" height="7" rx="1" />
+            <rect x="14" y="14" width="7" height="7" rx="1" />
+            <rect x="15" y="2" width="7" height="7" rx="1" />
+          </svg>
+        </div>
+
+        <!-- Bottom Activity Icons -->
+        <div class="activity-bottom">
+          <!-- Account -->
+          <div class="activity-icon" title="Accounts">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"
+              stroke-linecap="round" stroke-linejoin="round">
+              <circle cx="12" cy="8" r="4" />
+              <path d="M6 21v-2a4 4 0 0 1 4-4h4a4 4 0 0 1 4 4v2" />
+            </svg>
+          </div>
+          <!-- Settings -->
+          <div class="activity-icon" title="Manage / Settings">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"
+              stroke-linecap="round" stroke-linejoin="round">
+              <circle cx="12" cy="12" r="3" />
+              <path
+                d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 1 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 1 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 1 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 1 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z" />
+            </svg>
+          </div>
+          <!-- AI Copilot -->
+          <div class="activity-icon ai-activity-icon" id="activity-ai-toggle" title="Toggle AI Copilot"
+            onclick="window.toggleChat()">
+            <div class="ai-sparkle-dot"></div>
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
+              <path
+                d="M12 2a4 4 0 0 1 4 4v1h1a3 3 0 0 1 3 3v2a3 3 0 0 1-3 3h-1v1a4 4 0 0 1-4 4h-1a4 4 0 0 1-4-4v-1H6a3 3 0 0 1-3-3v-2a3 3 0 0 1 3-3h1V6a4 4 0 0 1 4-4h1Z"
+                stroke="currentColor" stroke-width="1.6" />
+              <circle cx="9.5" cy="11.5" r="1" fill="currentColor" />
+              <circle cx="14.5" cy="11.5" r="1" fill="currentColor" />
+            </svg>
+          </div>
+        </div>
+      </div>
+
+      <!-- ░░ Sidebar: EXPLORER Panel (Exact VS Code Layout) ░░ -->
+      <aside class="sidebar" id="sidebar">
+        <div class="sidebar-header">
+          <span class="sidebar-title">Explorer</span>
+          <span class="sidebar-dots" title="More Actions">•••</span>
+        </div>
+
+        <!-- Open Editors Accordion (Stay Closed) -->
+        <div class="explorer-section">
+          <div class="explorer-section-header" id="opened-editors-toggle">
+            <span class="tree-chevron collapsed" id="open-editors-chevron">
+              <svg width="10" height="10" viewBox="0 0 16 16" fill="currentColor">
+                <path
+                  d="M4.646 6.646a.5.5 0 0 1 .708 0L8 9.293l2.646-2.647a.5.5 0 0 1 .708.708l-3 3a.5.5 0 0 1-.708 0l-3-3a.5.5 0 0 1 0-.708z" />
+              </svg>
+            </span>
+            <span class="explorer-section-title">Open Editors</span>
+          </div>
+          <div class="explorer-section-body collapsed" id="opened-editors-list">
+            <a href="#about" class="file-item active" data-section="about">
+              <span class="file-icon py"><svg width="14" height="14" viewBox="0 0 128 128">
+                  <path fill="#3776ab"
+                    d="M63.2 2c-15.6 0-25 6.8-25 15.6v11.4h25v3.4H25.3C11 32.4 0 42.8 0 57.2s9.8 24.3 23.6 24.8v-11.7c0-8.8 7.3-16.1 16.1-16.1h25c8.8 0 16.1-7.3 16.1-16.1V17.6C80.8 8.8 72 2 63.2 2zm-8.8 8.8a4.4 4.4 0 1 1 0 8.8 4.4 4.4 0 0 1 0-8.8z" />
+                  <path fill="#ffd343"
+                    d="M64.8 126c15.6 0 25-6.8 25-15.6V99H64.8v-3.4h37.9c14.3 0 25.3-10.4 25.3-24.8s-9.8-24.3-23.6-24.8v11.7c0 8.8-7.3 16.1-16.1 16.1h-25c-8.8 0-16.1 7.3-16.1 16.1v31.2c0 8.8 8.8 15.6 17.6 15.6zm8.8-8.8a4.4 4.4 0 1 1 0-8.8 4.4 4.4 0 0 1 0 8.8z" />
+                </svg></span>
+              <span class="file-label">about.py</span>
+              <span class="file-path-sub">portfolio</span>
+              <span class="git-status git-m">M</span>
+              <span class="file-close-icon">✕</span>
+            </a>
+            <a href="#projects" class="file-item" data-section="projects">
+              <span class="file-icon py"><svg width="14" height="14" viewBox="0 0 128 128">
+                  <path fill="#3776ab"
+                    d="M63.2 2c-15.6 0-25 6.8-25 15.6v11.4h25v3.4H25.3C11 32.4 0 42.8 0 57.2s9.8 24.3 23.6 24.8v-11.7c0-8.8 7.3-16.1 16.1-16.1h25c8.8 0 16.1-7.3 16.1-16.1V17.6C80.8 8.8 72 2 63.2 2zm-8.8 8.8a4.4 4.4 0 1 1 0 8.8 4.4 4.4 0 0 1 0-8.8z" />
+                  <path fill="#ffd343"
+                    d="M64.8 126c15.6 0 25-6.8 25-15.6V99H64.8v-3.4h37.9c14.3 0 25.3-10.4 25.3-24.8s-9.8-24.3-23.6-24.8v11.7c0 8.8-7.3 16.1-16.1 16.1h-25c-8.8 0-16.1 7.3-16.1 16.1v31.2c0 8.8 8.8 15.6 17.6 15.6zm8.8-8.8a4.4 4.4 0 1 1 0-8.8 4.4 4.4 0 0 1 0 8.8z" />
+                </svg></span>
+              <span class="file-label">projects.py</span>
+              <span class="file-path-sub">portfolio</span>
+              <span class="git-status git-m">M</span>
+              <span class="file-close-icon">✕</span>
+            </a>
+            <a href="#skills" class="file-item" data-section="skills">
+              <span class="file-icon py"><svg width="14" height="14" viewBox="0 0 128 128">
+                  <path fill="#3776ab"
+                    d="M63.2 2c-15.6 0-25 6.8-25 15.6v11.4h25v3.4H25.3C11 32.4 0 42.8 0 57.2s9.8 24.3 23.6 24.8v-11.7c0-8.8 7.3-16.1 16.1-16.1h25c8.8 0 16.1-7.3 16.1-16.1V17.6C80.8 8.8 72 2 63.2 2zm-8.8 8.8a4.4 4.4 0 1 1 0 8.8 4.4 4.4 0 0 1 0-8.8z" />
+                  <path fill="#ffd343"
+                    d="M64.8 126c15.6 0 25-6.8 25-15.6V99H64.8v-3.4h37.9c14.3 0 25.3-10.4 25.3-24.8s-9.8-24.3-23.6-24.8v11.7c0 8.8-7.3 16.1-16.1 16.1h-25c-8.8 0-16.1 7.3-16.1 16.1v31.2c0 8.8 8.8 15.6 17.6 15.6zm8.8-8.8a4.4 4.4 0 1 1 0-8.8 4.4 4.4 0 0 1 0 8.8z" />
+                </svg></span>
+              <span class="file-label">skills.py</span>
+              <span class="file-path-sub">portfolio</span>
+              <span class="git-status git-m">M</span>
+              <span class="file-close-icon">✕</span>
+            </a>
+          </div>
+        </div>
+
+        <!-- Project Folder Tree: portfolio -->
+        <nav class="file-tree" id="file-tree">
+          <div class="tree-root-folder" id="root-folder-toggle">
+            <span class="tree-chevron down" id="root-chevron">
+              <svg width="10" height="10" viewBox="0 0 16 16" fill="currentColor">
+                <path
+                  d="M4.646 6.646a.5.5 0 0 1 .708 0L8 9.293l2.646-2.647a.5.5 0 0 1 .708.708l-3 3a.5.5 0 0 1-.708 0l-3-3a.5.5 0 0 1 0-.708z" />
+              </svg>
+            </span>
+            <span class="tree-folder-title">portfolio</span>
+          </div>
+
+          <div class="tree-subfolder-group">
+            <!-- Folder: static -->
+            <div class="folder-header collapsed-folder">
+              <span class="tree-chevron collapsed">
+                <svg width="10" height="10" viewBox="0 0 16 16" fill="currentColor">
+                  <path
+                    d="M4.646 6.646a.5.5 0 0 1 .708 0L8 9.293l2.646-2.647a.5.5 0 0 1 .708.708l-3 3a.5.5 0 0 1-.708 0l-3-3a.5.5 0 0 1 0-.708z" />
+                </svg>
+              </span>
+              <span class="folder-icon">
+                <svg width="15" height="15" viewBox="0 0 24 24" fill="none">
+                  <path d="M3 7v10a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2h-6.5L10.5 5H5a2 2 0 0 0-2 2Z"
+                    fill="#dcb67a" stroke="#dcb67a" stroke-width="1.2" />
+                </svg>
+              </span>
+              <span class="folder-name">static</span>
+            </div>
+
+            <!-- Folder: templates (expanded) -->
+            <div class="folder-header" id="templates-folder-toggle">
+              <span class="tree-chevron down" id="templates-chevron">
+                <svg width="10" height="10" viewBox="0 0 16 16" fill="currentColor">
+                  <path
+                    d="M4.646 6.646a.5.5 0 0 1 .708 0L8 9.293l2.646-2.647a.5.5 0 0 1 .708.708l-3 3a.5.5 0 0 1-.708 0l-3-3a.5.5 0 0 1 0-.708z" />
+                </svg>
+              </span>
+              <span class="folder-icon">
+                <svg width="15" height="15" viewBox="0 0 24 24" fill="none">
+                  <path d="M3 7v10a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2h-6.5L10.5 5H5a2 2 0 0 0-2 2Z"
+                    fill="#dcb67a" stroke="#dcb67a" stroke-width="1.2" />
+                </svg>
+              </span>
+              <span class="folder-name">templates</span>
+            </div>
+
+            <div class="folder-children" id="templates-folder-children">
+              <div class="file-item sub-file">
+                <span class="file-icon html-icon">&lt;/&gt;</span>
+                <span class="file-label">admin.html</span>
+              </div>
+              <div class="file-item sub-file">
+                <span class="file-icon html-icon">&lt;/&gt;</span>
+                <span class="file-label">base.html</span>
+                <span class="git-status git-m">M</span>
+              </div>
+              <div class="file-item sub-file">
+                <span class="file-icon html-icon">&lt;/&gt;</span>
+                <span class="file-label">index.html</span>
+                <span class="git-status git-m">M</span>
+              </div>
+              <div class="file-item sub-file">
+                <span class="file-icon html-icon">&lt;/&gt;</span>
+                <span class="file-label">login.html</span>
+              </div>
+            </div>
+
+            <!-- Folder: venv -->
+            <div class="folder-header collapsed-folder">
+              <span class="tree-chevron collapsed">
+                <svg width="10" height="10" viewBox="0 0 16 16" fill="currentColor">
+                  <path
+                    d="M4.646 6.646a.5.5 0 0 1 .708 0L8 9.293l2.646-2.647a.5.5 0 0 1 .708.708l-3 3a.5.5 0 0 1-.708 0l-3-3a.5.5 0 0 1 0-.708z" />
+                </svg>
+              </span>
+              <span class="folder-icon">
+                <svg width="15" height="15" viewBox="0 0 24 24" fill="none">
+                  <path d="M3 7v10a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2h-6.5L10.5 5H5a2 2 0 0 0-2 2Z"
+                    fill="#dcb67a" stroke="#dcb67a" stroke-width="1.2" />
+                </svg>
+              </span>
+              <span class="folder-name">venv</span>
+            </div>
+
+            <!-- Root Files -->
+            <div class="file-item">
+              <span class="file-icon git-icon">♦</span>
+              <span class="file-label">.gitignore</span>
+              <span class="git-status git-u">U</span>
+            </div>
+
+            <a href="#about" class="file-item" data-section="about">
+              <span class="file-icon py"><svg width="14" height="14" viewBox="0 0 128 128">
+                  <path fill="#3776ab"
+                    d="M63.2 2c-15.6 0-25 6.8-25 15.6v11.4h25v3.4H25.3C11 32.4 0 42.8 0 57.2s9.8 24.3 23.6 24.8v-11.7c0-8.8 7.3-16.1 16.1-16.1h25c8.8 0 16.1-7.3 16.1-16.1V17.6C80.8 8.8 72 2 63.2 2zm-8.8 8.8a4.4 4.4 0 1 1 0 8.8 4.4 4.4 0 0 1 0-8.8z" />
+                  <path fill="#ffd343"
+                    d="M64.8 126c15.6 0 25-6.8 25-15.6V99H64.8v-3.4h37.9c14.3 0 25.3-10.4 25.3-24.8s-9.8-24.3-23.6-24.8v11.7c0 8.8-7.3 16.1-16.1 16.1h-25c-8.8 0-16.1 7.3-16.1 16.1v31.2c0 8.8 8.8 15.6 17.6 15.6zm8.8-8.8a4.4 4.4 0 1 1 0-8.8 4.4 4.4 0 0 1 0 8.8z" />
+                </svg></span>
+              <span class="file-label">about.py</span>
+              <span class="git-status git-m">M</span>
+            </a>
+
+            <a href="#projects" class="file-item" data-section="projects">
+              <span class="file-icon py"><svg width="14" height="14" viewBox="0 0 128 128">
+                  <path fill="#3776ab"
+                    d="M63.2 2c-15.6 0-25 6.8-25 15.6v11.4h25v3.4H25.3C11 32.4 0 42.8 0 57.2s9.8 24.3 23.6 24.8v-11.7c0-8.8 7.3-16.1 16.1-16.1h25c8.8 0 16.1-7.3 16.1-16.1V17.6C80.8 8.8 72 2 63.2 2zm-8.8 8.8a4.4 4.4 0 1 1 0 8.8 4.4 4.4 0 0 1 0-8.8z" />
+                  <path fill="#ffd343"
+                    d="M64.8 126c15.6 0 25-6.8 25-15.6V99H64.8v-3.4h37.9c14.3 0 25.3-10.4 25.3-24.8s-9.8-24.3-23.6-24.8v11.7c0 8.8-7.3 16.1-16.1 16.1h-25c-8.8 0-16.1 7.3-16.1 16.1v31.2c0 8.8 8.8 15.6 17.6 15.6zm8.8-8.8a4.4 4.4 0 1 1 0-8.8 4.4 4.4 0 0 1 0 8.8z" />
+                </svg></span>
+              <span class="file-label">projects.py</span>
+              <span class="git-status git-m">M</span>
+            </a>
+
+            <a href="#skills" class="file-item" data-section="skills">
+              <span class="file-icon py"><svg width="14" height="14" viewBox="0 0 128 128">
+                  <path fill="#3776ab"
+                    d="M63.2 2c-15.6 0-25 6.8-25 15.6v11.4h25v3.4H25.3C11 32.4 0 42.8 0 57.2s9.8 24.3 23.6 24.8v-11.7c0-8.8 7.3-16.1 16.1-16.1h25c8.8 0 16.1-7.3 16.1-16.1V17.6C80.8 8.8 72 2 63.2 2zm-8.8 8.8a4.4 4.4 0 1 1 0 8.8 4.4 4.4 0 0 1 0-8.8z" />
+                  <path fill="#ffd343"
+                    d="M64.8 126c15.6 0 25-6.8 25-15.6V99H64.8v-3.4h37.9c14.3 0 25.3-10.4 25.3-24.8s-9.8-24.3-23.6-24.8v11.7c0 8.8-7.3 16.1-16.1 16.1h-25c-8.8 0-16.1 7.3-16.1 16.1v31.2c0 8.8 8.8 15.6 17.6 15.6zm8.8-8.8a4.4 4.4 0 1 1 0-8.8 4.4 4.4 0 0 1 0 8.8z" />
+                </svg></span>
+              <span class="file-label">skills.py</span>
+              <span class="git-status git-m">M</span>
+            </a>
+
+            <a href="#experience" class="file-item" data-section="experience">
+              <span class="file-icon py"><svg width="14" height="14" viewBox="0 0 128 128">
+                  <path fill="#3776ab"
+                    d="M63.2 2c-15.6 0-25 6.8-25 15.6v11.4h25v3.4H25.3C11 32.4 0 42.8 0 57.2s9.8 24.3 23.6 24.8v-11.7c0-8.8 7.3-16.1 16.1-16.1h25c8.8 0 16.1-7.3 16.1-16.1V17.6C80.8 8.8 72 2 63.2 2zm-8.8 8.8a4.4 4.4 0 1 1 0 8.8 4.4 4.4 0 0 1 0-8.8z" />
+                  <path fill="#ffd343"
+                    d="M64.8 126c15.6 0 25-6.8 25-15.6V99H64.8v-3.4h37.9c14.3 0 25.3-10.4 25.3-24.8s-9.8-24.3-23.6-24.8v11.7c0 8.8-7.3 16.1-16.1 16.1h-25c-8.8 0-16.1 7.3-16.1 16.1v31.2c0 8.8 8.8 15.6 17.6 15.6zm8.8-8.8a4.4 4.4 0 1 1 0-8.8 4.4 4.4 0 0 1 0 8.8z" />
+                </svg></span>
+              <span class="file-label">experience.py</span>
+              <span class="git-status git-m">M</span>
+            </a>
+
+            <a href="#contact" class="file-item" data-section="contact">
+              <span class="file-icon py"><svg width="14" height="14" viewBox="0 0 128 128">
+                  <path fill="#3776ab"
+                    d="M63.2 2c-15.6 0-25 6.8-25 15.6v11.4h25v3.4H25.3C11 32.4 0 42.8 0 57.2s9.8 24.3 23.6 24.8v-11.7c0-8.8 7.3-16.1 16.1-16.1h25c8.8 0 16.1-7.3 16.1-16.1V17.6C80.8 8.8 72 2 63.2 2zm-8.8 8.8a4.4 4.4 0 1 1 0 8.8 4.4 4.4 0 0 1 0-8.8z" />
+                  <path fill="#ffd343"
+                    d="M64.8 126c15.6 0 25-6.8 25-15.6V99H64.8v-3.4h37.9c14.3 0 25.3-10.4 25.3-24.8s-9.8-24.3-23.6-24.8v11.7c0 8.8-7.3 16.1-16.1 16.1h-25c-8.8 0-16.1 7.3-16.1 16.1v31.2c0 8.8 8.8 15.6 17.6 15.6zm8.8-8.8a4.4 4.4 0 1 1 0-8.8 4.4 4.4 0 0 1 0 8.8z" />
+                </svg></span>
+              <span class="file-label">contact.py</span>
+              <span class="git-status git-m">M</span>
+            </a>
+
+            <div class="file-item">
+              <span class="file-icon db-icon">🗄️</span>
+              <span class="file-label">portfolio.db</span>
+              <span class="git-status git-m">M</span>
+            </div>
+
+            <a href="#about" class="file-item" data-section="readme" id="file-readme">
+              <span class="file-icon md"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#858585"
+                  stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                  <rect x="3" y="3" width="18" height="18" rx="2.5" />
+                  <path d="M7 15V9l2.5 3 2.5-3v6" />
+                  <path d="m15 12 2 2 2-2" />
+                  <path d="M17 9v5" />
+                </svg></span>
+              <span class="file-label">README.md</span>
+              <span class="git-status git-m">M</span>
+            </a>
+
+            <div class="file-item">
+              <span class="file-icon txt-icon">📄</span>
+              <span class="file-label">requirements.txt</span>
+              <span class="git-status git-m">M</span>
+            </div>
+
+            <div class="file-item">
+              <span class="file-icon py"><svg width="14" height="14" viewBox="0 0 128 128">
+                  <path fill="#3776ab"
+                    d="M63.2 2c-15.6 0-25 6.8-25 15.6v11.4h25v3.4H25.3C11 32.4 0 42.8 0 57.2s9.8 24.3 23.6 24.8v-11.7c0-8.8 7.3-16.1 16.1-16.1h25c8.8 0 16.1-7.3 16.1-16.1V17.6C80.8 8.8 72 2 63.2 2zm-8.8 8.8a4.4 4.4 0 1 1 0 8.8 4.4 4.4 0 0 1 0-8.8z" />
+                  <path fill="#ffd343"
+                    d="M64.8 126c15.6 0 25-6.8 25-15.6V99H64.8v-3.4h37.9c14.3 0 25.3-10.4 25.3-24.8s-9.8-24.3-23.6-24.8v11.7c0 8.8-7.3 16.1-16.1 16.1h-25c-8.8 0-16.1 7.3-16.1 16.1v31.2c0 8.8 8.8 15.6 17.6 15.6zm8.8-8.8a4.4 4.4 0 1 1 0-8.8 4.4 4.4 0 0 1 0 8.8z" />
+                </svg></span>
+              <span class="file-label">seed_data.py</span>
+              <span class="git-status git-m">M</span>
+            </div>
+          </div>
+        </nav>
+      </aside>
+
+      <!-- ░░ Main Editor Column (Center) ░░ -->
+      <div class="editor-column">
+
+        <!-- Tab bar with VS Code layout -->
+        <div class="tab-bar-container">
+          <div class="tab-bar" id="tab-bar">
+            <a href="#about" class="tab active" data-section="about">
+              <span class="tab-icon py"><svg width="13" height="13" viewBox="0 0 128 128">
+                  <path fill="#3776ab"
+                    d="M63.2 2c-15.6 0-25 6.8-25 15.6v11.4h25v3.4H25.3C11 32.4 0 42.8 0 57.2s9.8 24.3 23.6 24.8v-11.7c0-8.8 7.3-16.1 16.1-16.1h25c8.8 0 16.1-7.3 16.1-16.1V17.6C80.8 8.8 72 2 63.2 2zm-8.8 8.8a4.4 4.4 0 1 1 0 8.8 4.4 4.4 0 0 1 0-8.8z" />
+                  <path fill="#ffd343"
+                    d="M64.8 126c15.6 0 25-6.8 25-15.6V99H64.8v-3.4h37.9c14.3 0 25.3-10.4 25.3-24.8s-9.8-24.3-23.6-24.8v11.7c0 8.8-7.3 16.1-16.1 16.1h-25c-8.8 0-16.1 7.3-16.1 16.1v31.2c0 8.8 8.8 15.6 17.6 15.6zm8.8-8.8a4.4 4.4 0 1 1 0-8.8 4.4 4.4 0 0 1 0 8.8z" />
+                </svg></span>
+              <span class="tab-title">about.py</span>
+              <span class="git-status git-m">M</span>
+              <span class="tab-close">✕</span>
+            </a>
+            <a href="#projects" class="tab" data-section="projects">
+              <span class="tab-icon py"><svg width="13" height="13" viewBox="0 0 128 128">
+                  <path fill="#3776ab"
+                    d="M63.2 2c-15.6 0-25 6.8-25 15.6v11.4h25v3.4H25.3C11 32.4 0 42.8 0 57.2s9.8 24.3 23.6 24.8v-11.7c0-8.8 7.3-16.1 16.1-16.1h25c8.8 0 16.1-7.3 16.1-16.1V17.6C80.8 8.8 72 2 63.2 2zm-8.8 8.8a4.4 4.4 0 1 1 0 8.8 4.4 4.4 0 0 1 0-8.8z" />
+                  <path fill="#ffd343"
+                    d="M64.8 126c15.6 0 25-6.8 25-15.6V99H64.8v-3.4h37.9c14.3 0 25.3-10.4 25.3-24.8s-9.8-24.3-23.6-24.8v11.7c0 8.8-7.3 16.1-16.1 16.1h-25c-8.8 0-16.1 7.3-16.1 16.1v31.2c0 8.8 8.8 15.6 17.6 15.6zm8.8-8.8a4.4 4.4 0 1 1 0-8.8 4.4 4.4 0 0 1 0 8.8z" />
+                </svg></span>
+              <span class="tab-title">projects.py</span>
+              <span class="git-status git-m">M</span>
+              <span class="tab-close">✕</span>
+            </a>
+            <a href="#skills" class="tab" data-section="skills">
+              <span class="tab-icon py"><svg width="13" height="13" viewBox="0 0 128 128">
+                  <path fill="#3776ab"
+                    d="M63.2 2c-15.6 0-25 6.8-25 15.6v11.4h25v3.4H25.3C11 32.4 0 42.8 0 57.2s9.8 24.3 23.6 24.8v-11.7c0-8.8 7.3-16.1 16.1-16.1h25c8.8 0 16.1-7.3 16.1-16.1V17.6C80.8 8.8 72 2 63.2 2zm-8.8 8.8a4.4 4.4 0 1 1 0 8.8 4.4 4.4 0 0 1 0-8.8z" />
+                  <path fill="#ffd343"
+                    d="M64.8 126c15.6 0 25-6.8 25-15.6V99H64.8v-3.4h37.9c14.3 0 25.3-10.4 25.3-24.8s-9.8-24.3-23.6-24.8v11.7c0 8.8-7.3 16.1-16.1 16.1h-25c-8.8 0-16.1 7.3-16.1 16.1v31.2c0 8.8 8.8 15.6 17.6 15.6zm8.8-8.8a4.4 4.4 0 1 1 0-8.8 4.4 4.4 0 0 1 0 8.8z" />
+                </svg></span>
+              <span class="tab-title">skills.py</span>
+              <span class="git-status git-m">M</span>
+              <span class="tab-close">✕</span>
+            </a>
+            <a href="#experience" class="tab" data-section="experience">
+              <span class="tab-icon py"><svg width="13" height="13" viewBox="0 0 128 128">
+                  <path fill="#3776ab"
+                    d="M63.2 2c-15.6 0-25 6.8-25 15.6v11.4h25v3.4H25.3C11 32.4 0 42.8 0 57.2s9.8 24.3 23.6 24.8v-11.7c0-8.8 7.3-16.1 16.1-16.1h25c8.8 0 16.1-7.3 16.1-16.1V17.6C80.8 8.8 72 2 63.2 2zm-8.8 8.8a4.4 4.4 0 1 1 0 8.8 4.4 4.4 0 0 1 0-8.8z" />
+                  <path fill="#ffd343"
+                    d="M64.8 126c15.6 0 25-6.8 25-15.6V99H64.8v-3.4h37.9c14.3 0 25.3-10.4 25.3-24.8s-9.8-24.3-23.6-24.8v11.7c0 8.8-7.3 16.1-16.1 16.1h-25c-8.8 0-16.1 7.3-16.1 16.1v31.2c0 8.8 8.8 15.6 17.6 15.6zm8.8-8.8a4.4 4.4 0 1 1 0-8.8 4.4 4.4 0 0 1 0 8.8z" />
+                </svg></span>
+              <span class="tab-title">experience.py</span>
+              <span class="git-status git-m">M</span>
+              <span class="tab-close">✕</span>
+            </a>
+            <a href="#contact" class="tab" data-section="contact">
+              <span class="tab-icon py"><svg width="13" height="13" viewBox="0 0 128 128">
+                  <path fill="#3776ab"
+                    d="M63.2 2c-15.6 0-25 6.8-25 15.6v11.4h25v3.4H25.3C11 32.4 0 42.8 0 57.2s9.8 24.3 23.6 24.8v-11.7c0-8.8 7.3-16.1 16.1-16.1h25c8.8 0 16.1-7.3 16.1-16.1V17.6C80.8 8.8 72 2 63.2 2zm-8.8 8.8a4.4 4.4 0 1 1 0 8.8 4.4 4.4 0 0 1 0-8.8z" />
+                  <path fill="#ffd343"
+                    d="M64.8 126c15.6 0 25-6.8 25-15.6V99H64.8v-3.4h37.9c14.3 0 25.3-10.4 25.3-24.8s-9.8-24.3-23.6-24.8v11.7c0 8.8-7.3 16.1-16.1 16.1h-25c-8.8 0-16.1 7.3-16.1 16.1v31.2c0 8.8 8.8 15.6 17.6 15.6zm8.8-8.8a4.4 4.4 0 1 1 0-8.8 4.4 4.4 0 0 1 0 8.8z" />
+                </svg></span>
+              <span class="tab-title">contact.py</span>
+              <span class="git-status git-m">M</span>
+              <span class="tab-close">✕</span>
+            </a>
+          </div>
+          <div class="tab-bar-actions">
+            <button class="icon-tab-btn" title="Split Editor Right">
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+                <rect x="3" y="3" width="18" height="18" rx="2" />
+                <path d="M12 3v18" />
+              </svg>
+            </button>
+            <button class="icon-tab-btn" title="More Actions">•••</button>
+          </div>
+        </div>
+
+        <!-- Breadcrumb -->
+        <div class="breadcrumb">
+          <span id="breadcrumb-text">portfolio &gt; templates &gt; index.html</span>
+        </div>
+
+        <main class="editor-pane" id="editor-pane" style="display: flex; align-items: flex-start;">
+          <div id="global-line-gutter" class="line-gutter"></div>
+          <div class="content-wrapper" style="flex: 1; padding-bottom: 40px;">
+            {% block content %}{% endblock %}
+          </div>
+        </main>
+
+        <!-- ░░ Floating Scroll Indicator Prompt (Landing Cue) ░░ -->
+        <button class="editor-scroll-pill" id="editor-scroll-pill" title="Scroll down to explore"
+          onclick="window.jumpToSection('projects')">
+          <span class="scroll-mouse-icon">
+            <span class="scroll-mouse-wheel"></span>
+          </span>
+          <span class="scroll-pill-text">Scroll to explore</span>
+          <svg class="scroll-pill-arrow" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+            stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round">
+            <path d="m6 9 6 6 6-6" />
+          </svg>
+        </button>
+
+        <!-- ░░ VS Code Bottom Interactive Terminal Panel ░░ -->
+        <div class="terminal-panel" id="terminal-panel">
+          <div class="terminal-header">
+            <div class="terminal-tabs">
+              <button class="term-tab" onclick="window.terminalShowTab('problems')">Problems <span
+                  class="term-tab-badge">0</span></button>
+              <button class="term-tab" onclick="window.terminalShowTab('output')">Output</button>
+              <button class="term-tab" onclick="window.terminalShowTab('debug')">Debug Console</button>
+              <button class="term-tab active" onclick="window.terminalShowTab('terminal')">Terminal</button>
+              <button class="term-tab" onclick="window.terminalShowTab('ports')">Ports</button>
+              <button class="term-tab" onclick="window.terminalShowTab('comments')">Comments</button>
+            </div>
+            <div class="terminal-controls">
+              <span class="term-shell-badge">&gt;_ zsh</span>
+              <button class="term-ctrl-btn" title="New Terminal" onclick="window.terminalExec('clear')">+</button>
+              <button class="term-ctrl-btn" title="Clear Terminal" onclick="window.terminalExec('clear')">
+                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <path d="M3 6h18M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2" />
+                </svg>
+              </button>
+              <button class="term-ctrl-btn" title="Close Panel (⌘J)" onclick="window.toggleTerminal()">✕</button>
+            </div>
+          </div>
+
+          <div class="terminal-body" id="terminal-body" onclick="document.getElementById('term-input').focus()">
+            <div class="term-history" id="term-history">
+              <div class="term-row term-info">Last login: Fri Nov 7 11:35:00 on ttys003</div>
+              <div class="term-row term-welcome">pankaj-bairagi-portfolio v1.0.0 (FastAPI • Python 3.12)</div>
+              <div class="term-row term-hint">Type <span class="term-cmd-hl">help</span>, <span
+                  class="term-cmd-hl">projects</span>, <span class="term-cmd-hl">skills</span>, <span
+                  class="term-cmd-hl">whoami</span>, or <span class="term-cmd-hl">cat README.md</span></div>
+            </div>
+            <div class="term-input-line">
+              <span class="term-user-path"><span class="term-user">pankajvshnv@Pankajs-MacBook</span> <span
+                  class="term-dir">portfolio</span> <span class="term-sym">%</span></span>
+              <input type="text" id="term-input" class="term-input" autocomplete="off" spellcheck="false"
+                placeholder="" />
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ░░ AI Copilot Assistant Dock (Right Side — VS Code Secondary Sidebar) ░░ -->
+      <aside class="ai-dock" id="ai-dock" aria-label="AI Assistant">
+        <div class="ai-dock-header">
+          <div class="orb"></div>
+          <div class="ai-header-info">
+            <div class="ai-dock-title">Ask {{ profile.name.split(' ')[0] }}’s Assistant</div>
+          </div>
+          <div class="ai-header-actions">
+            <button class="ai-tool-btn" title="New Session" onclick="window.clearChat()">+</button>
+            <button class="ai-tool-btn" title="More Actions">•••</button>
+            <button class="icon-btn ai-close-btn" id="chat-close" aria-label="Collapse AI chat" title="Close Copilot"
+              onclick="window.toggleChat()">
+              ✕
+            </button>
+          </div>
+        </div>
+
+        <div class="ai-dock-body" id="chat-body" aria-live="polite"></div>
+        <div class="ai-chips" id="chat-chips"></div>
+
+        <form class="ai-chat-form" id="chat-form" autocomplete="off">
+          <div class="ai-input-wrap">
+            <span class="ai-prompt-sym">&gt;</span>
+            <input id="chat-input" type="text" maxlength="500" placeholder="Ask anything, @ to mention, / for actions…"
+              aria-label="Message to AI">
+            <button class="ai-send-btn" id="chat-send" type="submit" aria-label="Send message">
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"
+                stroke-linecap="round" stroke-linejoin="round">
+                <path d="M5 12h14M13 6l6 6-6 6" />
+              </svg>
+            </button>
+          </div>
+        </form>
+        <div class="ai-dock-note">Gemini 2.5 • verified strictly from SQLite portfolio data</div>
+      </aside>
+
     </div>
+
+    <!-- ░░ Status bar (Matches VS Code exactly: Full Window Width at Bottom) ░░ -->
+    <footer class="status-bar">
+      <div class="status-group-left">
+        <span class="status-item status-branch" title="Git Branch: main">
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <circle cx="6" cy="6" r="2.5" />
+            <circle cx="6" cy="18" r="2.5" />
+            <path d="M6 8.5v7" />
+            <circle cx="18" cy="9" r="2.5" />
+            <path d="M8.5 6h3a4 4 0 0 1 4 4v-1" />
+          </svg>
+          main* +
+        </span>
+        <span class="status-item status-sync" title="Synchronize Changes">⟳</span>
+        <span class="status-item status-problems" title="0 Errors, 0 Warnings">⊗ 0 ▲ 0</span>
+      </div>
+
+      <div class="status-group-right">
+        <span class="status-item" id="editor-cursor-pos">Ln 1, Col 1</span>
+        <span class="status-item">Spaces: 4</span>
+        <span class="status-item">UTF-8</span>
+        <span class="status-item">LF</span>
+        <span class="status-item">{ } pip requirements</span>
+        <span class="status-item status-pill-py" title="Active Python Environment">🐍 Python 3.12</span>
+        <span class="status-pill-ai" onclick="window.toggleChat()" title="Click to open AI Copilot">
+          <span class="live-dot"></span> AI Copilot: Ready
+        </span>
+        <span class="status-clock" id="local-clock">--:--:--</span>
+      </div>
+    </footer>
   </div>
-</div>
 
-<button class="sidebar-toggle" id="sidebar-toggle" aria-label="Toggle menu">☰</button>
+  <!-- ░░ Floating AI Assistant Trigger on the Right Side (Opens Sidebar on Click) ░░ -->
+  <button class="chat-fab" id="chat-fab" aria-label="Open AI Assistant" title="Open Ask Pankaj's Assistant"
+    onclick="window.openChat()">
+    <div class="orb"></div>
+    <span class="chat-fab-text">Ask Pankaj’s Assistant</span>
+  </button>
 
-<script src="{{ url_for('static', filename='js/main.js') }}"></script>
-<script src="{{ url_for('static', filename='js/network-bg.js') }}"></script>
+  <button class="sidebar-toggle" id="sidebar-toggle" aria-label="Toggle Explorer Menu">☰</button>
+
+  <!-- Scripts -->
+  <script src="{{ url_for('static', filename='js/vendor/three.min.js') }}"></script>
+  <script src="{{ url_for('static', filename='js/hero3d.js') }}?v=2026f"></script>
+  <script src="{{ url_for('static', filename='js/main.js') }}"></script>
+  <script src="{{ url_for('static', filename='js/chat.js') }}"></script>
 </body>
+
 </html>

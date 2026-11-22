@@ -5,8 +5,6 @@ Run from the portfolio directory: python seed_data.py
 import sys, os, json, uuid
 sys.path.insert(0, os.path.dirname(__file__))
 
-from app import app, db, Profile, Project, Experience, Skill
-
 DEVICON = "https://cdn.jsdelivr.net/gh/devicons/devicon@latest/icons"
 
 SKILLS = [
@@ -102,7 +100,7 @@ PROJECTS = [
 
 PROFILE = {
     "name":       "Pankaj Bairagi",
-    "role":       "AI/ML Engineer & Full-Stack Developer",
+    "role":       "AI Engineer",
     "location":   "Indore, India",
     "status":     "Open to work",
     "email":      "nickvshnv@gmail.com",
@@ -120,24 +118,26 @@ PROFILE = {
 }
 
 # ── Run ───────────────────────────────────────────────────────────
-with app.app_context():
+from app import db_session, Profile, Project, Experience, Skill
+
+with db_session() as db:
     # Profile
-    p = Profile.query.first()
+    p = db.query(Profile).first()
     if not p:
         p = Profile(id=1)
-        db.session.add(p)
+        db.add(p)
     for k, v in PROFILE.items():
         setattr(p, k, v)
 
     # Skills — wipe & re-seed
-    Skill.query.delete()
+    db.query(Skill).delete()
     for name, icon in SKILLS:
-        db.session.add(Skill(id=uuid.uuid4().hex, name=name, icon=icon))
+        db.add(Skill(id=uuid.uuid4().hex, name=name, icon=icon))
 
     # Experience — wipe & re-seed
-    Experience.query.delete()
+    db.query(Experience).delete()
     for e in EXPERIENCE:
-        db.session.add(Experience(
+        db.add(Experience(
             id=e["id"],
             period=e["period"],
             company=e["company"],
@@ -146,9 +146,9 @@ with app.app_context():
         ))
 
     # Projects — wipe & re-seed
-    Project.query.delete()
+    db.query(Project).delete()
     for pr in PROJECTS:
-        db.session.add(Project(
+        db.add(Project(
             id=pr["id"],
             name=pr["name"],
             title=pr["title"],
@@ -159,9 +159,10 @@ with app.app_context():
             demo=pr.get("demo", "#"),
         ))
 
-    db.session.commit()
+    db.commit()
     print("✅  Database seeded successfully!")
     print(f"   Profile : {p.name}")
-    print(f"   Skills  : {Skill.query.count()}")
-    print(f"   Projects: {Project.query.count()}")
-    print(f"   Exp     : {Experience.query.count()}")
+    print(f"   Skills  : {db.query(Skill).count()}")
+    print(f"   Projects: {db.query(Project).count()}")
+    print(f"   Exp     : {db.query(Experience).count()}")
+

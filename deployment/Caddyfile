@@ -1,0 +1,26 @@
+# Caddyfile for Pankaj Portfolio
+# Replace YOUR_DOMAIN.COM with your domain (e.g. pankajbairagi.com)
+
+YOUR_DOMAIN.COM, www.YOUR_DOMAIN.COM {
+    # Automatic HTTPS is enabled by default by Caddy!
+    # No certbot or manual SSL certificate renewals required.
+
+    # Compression for high performance
+    encode gzip zstd
+
+    # Serve static files directly through Caddy for maximum speed
+    handle_path /static/* {
+        root * /var/www/portfolio/static
+        file_server
+    }
+
+    # Reverse proxy all other requests to FastAPI / Uvicorn
+    handle {
+        reverse_proxy 127.0.0.1:8000 {
+            header_up Host {host}
+            header_up X-Real-IP {remote_host}
+            header_up X-Forwarded-For {remote_host}
+            header_up X-Forwarded-Proto {scheme}
+        }
+    }
+}

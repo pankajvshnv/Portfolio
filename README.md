@@ -1,9 +1,14 @@
-# Portfolio — VS Code style (Flask + Bootstrap)
+# Portfolio — VS Code style (FastAPI + Bootstrap)
 
-A single-page portfolio styled like a code editor: activity bar, file-explorer
-sidebar, tabs, a line-gutter on each "file", and a terminal-style contact form.
+A high-performance, lightweight portfolio styled like a modern code editor with an interactive Signal-style network graph background, activity bar, file-explorer sidebar, tabs, and admin dashboard.
 
-## Run it locally
+## Tech Stack
+- **Backend:** FastAPI (Python 3.10+)
+- **Database:** SQLite via SQLAlchemy
+- **Templates:** Jinja2
+- **Production Server:** Uvicorn / Passenger WSGI (`a2wsgi`)
+
+## Run Locally
 
 ```bash
 python3 -m venv venv
@@ -12,84 +17,33 @@ pip install -r requirements.txt
 python3 app.py
 ```
 
-Visit http://127.0.0.1:5000
+Visit [http://127.0.0.1:8000](http://127.0.0.1:8000)
 
-## Customize your content
+## Admin Dashboard
+Visit `/admin` (Default password: `admin123` or set `ADMIN_PASSWORD` in `.env`) to manage:
+- Profile details (Name, Role, Location, Bio, Social links)
+- Projects (Add, edit, remove)
+- Skills (Add Devicon icons, manage tech stack)
+- Experience (Timeline & roles)
 
-Everything you need to edit lives at the top of **app.py**:
-- `PROFILE` — name, role, bio, links, resume URL
-- `PROJECTS` — add/remove project dicts (name, title, desc, stack, github, demo)
-- `SKILLS` — name + proficiency (0–100)
-- `TIMELINE` — your career history
-
-The templates (`templates/base.html`, `templates/index.html`) just loop over
-this data, so you rarely need to touch HTML for content changes.
-
-## Wire up the contact form for real
-
-Right now `POST /contact` in `app.py` just prints the message to the console.
-To actually send email, install Flask-Mail:
-
-```bash
-pip install Flask-Mail
-```
-
-and in `app.py`:
-
-```python
-from flask_mail import Mail, Message
-
-app.config.update(
-    MAIL_SERVER="smtp.gmail.com",
-    MAIL_PORT=587,
-    MAIL_USE_TLS=True,
-    MAIL_USERNAME="you@gmail.com",
-    MAIL_PASSWORD="your-app-password",   # use a Gmail App Password, not your real password
-)
-mail = Mail(app)
-
-# inside contact():
-msg = Message("New portfolio message", sender=email, recipients=["you@gmail.com"])
-msg.body = f"From: {name} <{email}>\n\n{message}"
-mail.send(msg)
-```
-
-Never commit real credentials — use environment variables
-(`os.environ.get("MAIL_PASSWORD")`) and a `.env` file (add it to `.gitignore`).
-
-## Styling
-
-All design tokens (colors, fonts) are CSS variables at the top of
-`static/css/style.css` — change `--accent` to swap the teal highlight for any
-color, or adjust `--bg-editor` / `--bg-sidebar` for a different editor theme
-(e.g. a lighter "VS Code Light" or Dracula palette).
-
-## Deploy
-
-Any host that runs Python works. Quick options:
-
-**Render.com**
-1. Push this repo to GitHub
-2. New → Web Service → connect the repo
-3. Build command: `pip install -r requirements.txt`
-4. Start command: `gunicorn app:app`
-
-**Railway.app** — same idea, auto-detects the Procfile-less Flask app if you
-add a `Procfile` with: `web: gunicorn app:app`
-
-Remember to set a real `app.secret_key` via environment variable before
-deploying (don't leave the placeholder in `app.py`).
-
-## Structure
+## Directory Structure
 
 ```
 portfolio/
-├── app.py                 # Flask app + your content
-├── requirements.txt
+├── app.py                 # FastAPI application & API routes
+├── passenger_wsgi.py      # Passenger WSGI adapter (a2wsgi) for Hostinger / cPanel
+├── portfolio.db           # SQLite database
+├── requirements.txt       # Minimal, lightweight dependencies
+├── seed_data.py           # Database seeder script
 ├── templates/
-│   ├── base.html          # IDE chrome: activity bar, sidebar, tabs
-│   └── index.html         # about / projects / skills / experience / contact
+│   ├── base.html          # Shell layout (editor tabs, sidebar, status bar)
+│   ├── index.html         # Hero, projects, skills, experience, contact
+│   ├── admin.html         # Admin management dashboard
+│   └── login.html         # Admin login
 └── static/
-    ├── css/style.css
-    └── js/main.js          # clock, scrollspy, mobile sidebar toggle
+    ├── css/style.css      # Core IDE styles
+    ├── images/profile.jpg # Profile photo
+    └── js/
+        ├── main.js        # Editor interactions, tab switching, clock
+        └── network-bg.js  # Interactive Signal-style network graph canvas
 ```
