@@ -1,4 +1,4 @@
-name: Deploy to VPS
+name: Deploy Portfolio with Docker
 
 on:
   push:
@@ -11,7 +11,7 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
 
-      - name: Deploy to VPS via SSH
+      - name: Deploy to VPS via SSH & Docker Compose
         uses: appleboy/ssh-action@v1.0.3
         with:
           host: ${{ secrets.VPS_HOST }}
@@ -20,11 +20,11 @@ jobs:
           port: ${{ secrets.VPS_PORT || 22 }}
           script: |
             set -e
-            echo "🚀 Starting deployment on VPS..."
+            echo "🚀 Starting automated Docker deployment..."
             
             APP_DIR="/var/www/portfolio"
-            
-            # Ensure app directory exists
+
+            # 1. Clone or navigate to app directory
             if [ ! -d "$APP_DIR" ]; then
               echo "Creating $APP_DIR..."
               sudo mkdir -p $APP_DIR
@@ -33,39 +33,38 @@ jobs:
             fi
 
             cd $APP_DIR
-            
-            # Stash any local changes to prevent merge conflicts
-            git stash || true
-            
-            # Pull latest changes from main branch
-            echo "📥 Pulling latest changes from GitHub..."
+
+            # 2. Stop old systemd service if running to prevent port 8000 conflict
+            echo "🛑 Ensuring standalone service is stopped..."
+            sudo systemctl stop portfolio.service 2>/dev/null || true
+            sudo systemctl disable portfolio.service 2>/dev/null || true
+
+            # 3. Pull latest changes from GitHub
+            echo "📥 Pulling latest main branch from GitHub..."
             git fetch origin main
             git reset --hard origin/main
-            
-            # Set up or activate Python virtual environment
-            if [ ! -d "venv" ]; then
-              echo "Creating virtual environment..."
-              python3 -m venv venv
-            fi
 
-            echo "📦 Installing/updating dependencies..."
-            source venv/bin/activate
-            pip install --upgrade pip
-            pip install -r requirements.txt
-            
-            # Ensure upload directory exists and has proper permissions
+            # 4. Ensure upload directory and permissions
             mkdir -p static/uploads
-            chmod -R 755 static/uploads
-            
-            # Seed database if not present
-            if [ ! -f "portfolio.db" ]; then
-              echo "🌱 Initializing database with seed data..."
-              python seed_data.py
+            chmod -R 777 static/uploads
+
+            # 5. Build and deploy container with Docker Compose
+            echo "🐳 Building and starting Docker container..."
+            if docker compose version &> /dev/null; then
+              docker compose up -d --build
+            elif command -v docker-compose &> /dev/null; then
+              docker-compose up -d --build
+            else
+              echo "❌ Docker Compose not found. Please install Docker Compose."
+              exit 1
             fi
 
-            # Restart application service
-            echo "🔄 Restarting portfolio service..."
-            sudo systemctl restart portfolio.service
-            
-            # Verify status
-            sudo systemctl is-active --quiet portfolio.service && echo "✅ Portfolio deployed and running successfully!" || (echo "❌ Service failed to start" && sudo journalctl -u portfolio.service -n 20 --no-pager && exit 1)
+            # 6. Verify container health
+            echo "⏳ Checking container status..."
+            sleep 3
+            curl -f -I http://127.0.0.1:8000/ || (echo "❌ Container failed health check" && docker logs portfolio_app && exit 1)
+
+            # 7. Reload Caddy reverse proxy
+            sudo systemctl reload caddy 2>/dev/null || true
+
+            echo "✅ Portfolio deployed successfully with Docker and accessible via Caddy!"
