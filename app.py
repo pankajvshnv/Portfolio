@@ -435,6 +435,48 @@ async def admin_profile(
     return RedirectResponse(url="/admin", status_code=303)
 
 
+@app.post("/admin/resume")
+async def admin_resume(
+    request: Request,
+    resume_file: Optional[UploadFile] = File(None),
+    resume_url: str = Form(""),
+):
+    """Dedicated endpoint to upload, replace, and save the resume document."""
+    if not request.session.get("admin"):
+        return RedirectResponse(url="/login", status_code=303)
+
+    final_resume_url = resume_url.strip()
+
+    if resume_file and resume_file.filename:
+        raw_name = os.path.basename(resume_file.filename)
+        clean_name = re.sub(r'[^a-zA-Z0-9_.-]', '_', raw_name)
+        if not clean_name.lower().endswith(('.pdf', '.doc', '.docx')):
+            clean_name += '.pdf'
+        upload_dir = os.path.join(basedir, "static", "uploads")
+        os.makedirs(upload_dir, exist_ok=True)
+        file_path = os.path.join(upload_dir, clean_name)
+
+        contents = await resume_file.read()
+        if len(contents) > 0:
+            with open(file_path, "wb") as f:
+                f.write(contents)
+            final_resume_url = f"/static/uploads/{clean_name}"
+
+    if final_resume_url:
+        with db_session() as db:
+            p = db.query(Profile).first()
+            if not p:
+                p = Profile(id=1)
+                db.add(p)
+            p.resume_url = final_resume_url
+            db.commit()
+        flash(request, "Resume file updated successfully! Visitors will now download this file.", "success")
+    else:
+        flash(request, "Please choose a resume file to upload.", "error")
+
+    return RedirectResponse(url="/admin#tab-resume", status_code=303)
+
+
 @app.post("/admin/projects")
 async def admin_projects(
     request: Request,
