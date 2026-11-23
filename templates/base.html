@@ -13,7 +13,7 @@
 <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}?v=2026f">
 </head>
 
-<body class="ai-collapsed {% block body_class %}{% endblock %}">
+<body class="ai-collapsed term-collapsed {% block body_class %}{% endblock %}">
 
   <!-- Ambient Cyber Glows -->
   <div class="ambient">
@@ -55,7 +55,7 @@
             <path d="M9 3v18" />
           </svg>
         </button>
-        <button class="win-layout-btn active" id="toggle-terminal-btn" title="Toggle Panel (Terminal) (⌘J)"
+        <button class="win-layout-btn" id="toggle-terminal-btn" title="Toggle Panel (Terminal) (⌘J)"
           onclick="window.toggleTerminal()">
           <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"
             stroke-linecap="round" stroke-linejoin="round">
@@ -501,7 +501,7 @@
         </button>
 
         <!-- ░░ VS Code Bottom Interactive Terminal Panel ░░ -->
-        <div class="terminal-panel" id="terminal-panel">
+        <div class="terminal-panel collapsed" id="terminal-panel">
           <div class="terminal-header">
             <div class="terminal-tabs">
               <button class="term-tab" onclick="window.terminalShowTab('problems')">Problems <span
@@ -594,7 +594,7 @@
           main* +
         </span>
         <span class="status-item status-sync" title="Synchronize Changes">⟳</span>
-        <span class="status-item status-problems" title="0 Errors, 0 Warnings">⊗ 0 ▲ 0</span>
+        <span class="status-item status-problems" onclick="window.toggleTerminal()" style="cursor: pointer;" title="Toggle Terminal / Problems (⌘J)">⊗ 0 ▲ 0</span>
       </div>
 
       <div class="status-group-right">

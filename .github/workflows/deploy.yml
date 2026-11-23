@@ -44,7 +44,8 @@ jobs:
             git fetch origin main
             git reset --hard origin/main
 
-            # 4. Ensure upload directory and permissions
+            # 4. Ensure database file, upload directory and permissions
+            touch portfolio.db
             mkdir -p static/uploads
             chmod -R 777 static/uploads
 
