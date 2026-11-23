@@ -44,10 +44,11 @@ jobs:
             git fetch origin main
             git reset --hard origin/main
 
-            # 4. Ensure database file, upload directory and permissions
+            # 4. Ensure database file, upload directory and safe permissions
             touch portfolio.db
             mkdir -p static/uploads
-            chmod -R 777 static/uploads
+            sudo chown -R $USER:$USER static/uploads 2>/dev/null || true
+            sudo chmod -R 777 static/uploads 2>/dev/null || chmod -R 777 static/uploads 2>/dev/null || true
 
             # 5. Build and deploy container with Docker Compose
             echo "🐳 Building and starting Docker container..."
