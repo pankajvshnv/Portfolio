@@ -660,34 +660,35 @@ a:hover { color: #7fe0cf; }
   bottom: 215px; /* Directly above terminal panel */
   left: 50%;
   transform: translateX(-50%);
-  display: flex;
+  display: inline-flex;
   align-items: center;
   gap: 8px;
-  background: rgba(22, 22, 24, 0.92);
+  white-space: nowrap;
+  max-width: calc(100% - 24px);
+  background: rgba(30, 36, 28, 0.92);
   backdrop-filter: blur(10px);
   -webkit-backdrop-filter: blur(10px);
-  border: 1px solid rgba(78, 201, 176, 0.4);
-  color: #e4e4e4;
+  border: 1px dashed rgba(106, 153, 85, 0.45);
+  color: #6a9955;
   padding: 6px 14px;
-  border-radius: 99px;
+  border-radius: 4px;
   font-family: var(--font-mono);
-  font-size: 11px;
-  font-weight: 500;
-  letter-spacing: 0.3px;
+  font-size: 12px;
+  font-weight: 400;
   cursor: pointer;
   z-index: 18;
-  box-shadow: 0 4px 18px rgba(0, 0, 0, 0.55), 0 0 12px rgba(78, 201, 176, 0.2);
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.45);
   transition: opacity 0.3s cubic-bezier(0.2, 0.8, 0.2, 1),
               transform 0.3s cubic-bezier(0.2, 0.8, 0.2, 1),
               bottom 0.25s cubic-bezier(0.2, 0.8, 0.2, 1),
-              border-color 0.2s, background 0.2s, box-shadow 0.2s;
+              border-color 0.2s, background 0.2s, color 0.2s, box-shadow 0.2s;
   user-select: none;
 }
 .editor-scroll-pill:hover {
-  background: #1f2428;
-  border-color: var(--accent);
-  color: #ffffff;
-  box-shadow: 0 4px 22px rgba(0, 0, 0, 0.7), 0 0 18px rgba(78, 201, 176, 0.4);
+  background: rgba(36, 46, 33, 0.96);
+  border-color: #6a9955;
+  color: #85c26b;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.6);
   transform: translateX(-50%) translateY(-2px);
 }
 .editor-scroll-pill.hidden {
@@ -726,8 +727,12 @@ body.term-collapsed .editor-scroll-pill {
 
 /* Arrow in scroll cue */
 .scroll-pill-arrow {
-  color: var(--accent);
+  color: #6a9955;
   animation: arrowBounce 1.6s infinite ease-in-out;
+  transition: color 0.2s ease;
+}
+.editor-scroll-pill:hover .scroll-pill-arrow {
+  color: #85c26b;
 }
 @keyframes arrowBounce {
   0%, 100% { transform: translateY(0); }

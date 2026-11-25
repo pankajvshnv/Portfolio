@@ -107,7 +107,7 @@ PROFILE = {
     "github":     "https://github.com/pankajvshnv",
     "linkedin":   "https://linkedin.com/in/pankajvshnv",
     "resume_url": "#",
-    "bio_short":  "AI/ML Engineer and Full-Stack Developer specialising in Python, Flask, LLMs, RAG pipelines, and cloud-native deployments.",
+    "bio_short":  "Specialising in production-grade LLM architectures, RAG pipelines, and resilient backend systems with cloud-native deployments.",
     "bio_long":   (
         "self.name       = \"Pankaj Bairagi\"\n"
         "self.education  = \"B.Tech @ LNCT Indore (2024–2027)\"\n"

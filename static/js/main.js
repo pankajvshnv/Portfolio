@@ -324,7 +324,7 @@ document.addEventListener("DOMContentLoaded", () => {
   if (typedEl && typedOut) {
     let words = [];
     try { words = JSON.parse(typedEl.dataset.words); } catch (e) { }
-    if (!words.length) words = ['AI/ML Engineering', 'LLMs & RAG Pipelines', 'Full-Stack Backend'];
+    if (!words.length) words = ['High-Performance Backend', 'LLMs & RAG Pipelines', 'Autonomous Agents'];
     let w = 0, i = 0, del = false;
     const reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
     const typeTick = () => {

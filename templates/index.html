@@ -6,7 +6,7 @@
 <!-- ░░ SECTION: about.py (Hero) ░░ -->
 <section id="about" class="code-section hero-section-3d">
   <div class="code-content full hero-inner-content">
-    <p class="code-comment"># about.py — neural systems &amp; full-stack engineer</p>
+    <p class="code-comment"># about.py — neural systems &amp; AI engineer</p>
     <p class="code-line"><span class="kw">class</span> <span class="cls">Developer</span>:</p>
     <div class="code-indent hero-flex-layout">
       
@@ -21,7 +21,7 @@
         <p class="hero-role"><span class="kw">self</span>.role = <span class="str">"{{ profile.role }}"</span></p>
 
         <!-- Clean Dynamic Typing Line -->
-        <div class="typed-line" id="typed" data-words='["AI/ML Engineering", "LLMs & RAG Pipelines", "High-Performance Backend", "Whisper & Speech AI", "Cloud Deployments"]'>
+        <div class="typed-line" id="typed" data-words='["High-Performance Backend", "LLMs & RAG Pipelines", "Whisper & Speech AI", "Autonomous Agent Workflows", "Vector Search & Retrieval"]'>
           <span class="tok">current_focus</span> = <span id="typed-text" class="typed-target"></span><span class="caret"></span>
         </div>
 
@@ -51,15 +51,6 @@
             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"></path><polyline points="22,6 12,13 2,6"></polyline></svg>
             {{ profile.email }}
           </span>
-        </div>
-
-        <!-- Inline Visual Scroll Cue -->
-        <div class="hero-scroll-inline">
-          <a href="#projects" class="hero-scroll-btn" onclick="event.preventDefault(); window.jumpToSection('projects');">
-            <span class="scroll-mouse-icon"><span class="scroll-mouse-wheel"></span></span>
-            <span class="scroll-btn-text">// scroll down to inspect projects &amp; skills</span>
-            <svg class="scroll-btn-arrow" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="m6 9 6 6 6-6"/></svg>
-          </a>
         </div>
 
       </div>
@@ -140,7 +131,6 @@
             <div class="skill-card-icon">
               <img src="{{ item.icon }}" alt="{{ item.name }}" loading="lazy" onerror="this.onerror=null; this.src='https://cdn.jsdelivr.net/gh/devicons/devicon@latest/icons/devicon/devicon-original.svg'" />
             </div>
-            <div class="skill-card-level">active</div>
           </div>
           {% endfor %}
         </div>
