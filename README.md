@@ -42,7 +42,7 @@ portfolio/
 │   └── login.html         # Admin login
 └── static/
     ├── css/style.css      # Core IDE styles
-    ├── images/profile.jpg # Profile photo
+    ├── images/panakajbairagi.jpg # Profile photo
     └── js/
         ├── main.js        # Editor interactions, tab switching, clock
         └── network-bg.js  # Interactive Signal-style network graph canvas

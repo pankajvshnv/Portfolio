@@ -1,7 +1,11 @@
 {% extends "base.html" %}
 
+{% block head_extra %}
+<script type="application/ld+json">{{ structured_data | tojson }}</script>
+{% endblock %}
+
 {% block content %}
-<div id="main-content">
+<main id="main-content">
 
 <!-- ░░ SECTION: about.py (Hero) ░░ -->
 <section id="about" class="code-section hero-section-3d">
@@ -55,7 +59,7 @@
       <aside class="profile-ide-card" aria-label="Developer Portrait">
         <div class="profile-ide-top"></div>
         <div class="profile-ide-photo">
-          <img src="{{ url_for('static', filename='images/profile.jpg') }}" alt="{{ profile.name }}" loading="eager" />
+          <img src="{{ url_for('static', filename='images/panakajbairagi.jpg') }}" alt="{{ profile.name }}" loading="eager" />
         </div>
         <div class="profile-ide-spacer"></div>
         <div class="profile-ide-footer">
@@ -88,7 +92,7 @@
       <div class="code-indent">
         <div class="project-grid">
           {% for project in projects %}
-          <div class="project-card" data-project-id="{{ project.id }}">
+          <article class="project-card" data-project-id="{{ project.id }}">
             <div class="project-card-head">
               <span class="dot red"></span><span class="dot yellow"></span><span class="dot green"></span>
               <span class="project-filename">{{ project.name }}</span>
@@ -103,7 +107,7 @@
             <div class="project-card-foot">
               <button onclick="openProject('{{ project.id }}', '{{ project.name }}')" class="btn btn-editor-outline" style="width: 100%; border: 1px dashed var(--border);">Inspect Code &amp; Details →</button>
             </div>
-          </div>
+          </article>
           {% endfor %}
         </div>
       </div>
@@ -237,7 +241,7 @@
   </div>
 </section>
 
-</div> <!-- end main-content -->
+</main> <!-- end main-content -->
 
 <!-- ░░ Project Views Container (Dynamic Tab View) ░░ -->
 <div id="project-content" style="display: none; width: 100%; max-width: 960px; margin: 0 auto; padding: 40px 24px;">

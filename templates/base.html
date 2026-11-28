@@ -4,8 +4,34 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>{{ profile.name }} — {{ profile.role }}</title>
-  <meta name="description" content="{{ profile.bio_short }}">
+  <title>{% block title %}{{ profile.name }} — {{ profile.role }} | AI, LLMs, RAG &amp; Backend Systems{% endblock %}</title>
+  <meta name="description" content="{% block description %}{{ profile.bio_short }}{% endblock %}">
+  <meta name="author" content="{{ profile.name }}">
+  <meta name="keywords" content="{{ profile.name }}, {{ profile.role }}, AI Engineer, Machine Learning, LLM, RAG, FastAPI, Python, Whisper, Vector Search, {{ profile.location }}">
+  <meta name="theme-color" content="#0d1117">
+  {% block robots %}<meta name="robots" content="index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1">{% endblock %}
+
+  <link rel="canonical" href="{{ canonical_url }}">
+  <link rel="alternate" type="text/plain" title="LLM Context (llms.txt)" href="{{ site_url }}/llms.txt">
+  <link rel="sitemap" type="application/xml" title="Sitemap" href="{{ site_url }}/sitemap.xml">
+
+  <!-- Open Graph / Social Search -->
+  <meta property="og:type" content="profile">
+  <meta property="og:site_name" content="{{ profile.name }} — Portfolio">
+  <meta property="og:title" content="{{ profile.name }} — {{ profile.role }}">
+  <meta property="og:description" content="{{ profile.bio_short }}">
+  <meta property="og:url" content="{{ canonical_url }}">
+  <meta property="og:image" content="{{ site_url }}{{ url_for('static', filename='images/panakajbairagi.jpg') }}">
+  <meta property="og:image:alt" content="{{ profile.name }} — {{ profile.role }}">
+  <meta property="og:locale" content="en_US">
+
+  <!-- Twitter / X Cards -->
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:title" content="{{ profile.name }} — {{ profile.role }}">
+  <meta name="twitter:description" content="{{ profile.bio_short }}">
+  <meta name="twitter:image" content="{{ site_url }}{{ url_for('static', filename='images/panakajbairagi.jpg') }}">
+  <meta name="twitter:image:alt" content="{{ profile.name }} — {{ profile.role }}">
+
   <link rel="icon" type="image/png" href="{{ url_for('static', filename='images/favicon.png') }}?v=2026k">
   <link rel="apple-touch-icon" href="{{ url_for('static', filename='images/favicon.png') }}?v=2026k">
 
@@ -13,6 +39,7 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Inter+Tight:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}?v=2026j">
+{% block head_extra %}{% endblock %}
 </head>
 
 <body class="ai-collapsed term-collapsed {% block body_class %}{% endblock %}">

@@ -1,5 +1,6 @@
 import os
 import json
+import html
 import base64
 import smtplib
 import ssl
@@ -231,6 +232,22 @@ def pop_flashed_messages(request: Request, with_categories: bool = True):
     return [msg for _, msg in flashes]
 
 
+# Base URL helper (validates Host header to prevent host-header injection)
+_SAFE_HOST_RE = re.compile(r"^[a-zA-Z0-9.-]+(?::\d{1,5})?$")
+
+
+def get_base_url(request: Request) -> str:
+    env_url = os.environ.get("SITE_URL", "").strip().rstrip("/")
+    if env_url:
+        return env_url
+    proto = (request.headers.get("x-forwarded-proto") or request.url.scheme or "https").split(",")[0].strip()
+    if proto not in ("http", "https"):
+        proto = "https"
+    raw_host = (request.headers.get("x-forwarded-host") or request.headers.get("host") or "").split(",")[0].strip()
+    host = raw_host if _SAFE_HOST_RE.match(raw_host) else "pankajbairagi.dev"
+    return f"{proto}://{host}"
+
+
 # Template rendering helper with backwards-compatible url_for and flash
 def render_template(request: Request, name: str, **context):
     def url_for_compat(endpoint_name: str, **kwargs):
@@ -242,6 +259,10 @@ def render_template(request: Request, name: str, **context):
         except Exception:
             return f"/{endpoint_name}"
 
+    site_url = get_base_url(request)
+    req_path = request.url.path or "/"
+    context["site_url"] = site_url
+    context["canonical_url"] = f"{site_url}{req_path if req_path != '/' else '/'}"
     context["request"] = request
     context["url_for"] = url_for_compat
     context["get_flashed_messages"] = lambda with_categories=True: pop_flashed_messages(request, with_categories)
@@ -250,15 +271,104 @@ def render_template(request: Request, name: str, **context):
 
 # ─── Routes ──────────────────────────────────────────────────────────
 
+def build_structured_data(base_url: str, profile: dict, projects: list, skills: list, experience: list) -> dict:
+    """Build Schema.org JSON-LD @graph for SEO and Answer Engine Optimization (AEO)."""
+    name = profile.get("name", "Pankaj Bairagi")
+    role = profile.get("role", "AI Engineer")
+    same_as = [u for u in (profile.get("github"), profile.get("linkedin")) if u and u != "#"]
+    knows_about = [s["name"] for s in skills if s.get("name")]
+    works_for = [
+        {"@type": "Organization", "name": e["company"]}
+        for e in experience
+        if e.get("company")
+    ]
+
+    person = {
+        "@type": "Person",
+        "@id": f"{base_url}/#person",
+        "name": name,
+        "jobTitle": role,
+        "description": profile.get("bio_short", ""),
+        "url": f"{base_url}/",
+        "image": f"{base_url}/static/images/panakajbairagi.jpg",
+        "sameAs": same_as,
+        "knowsAbout": knows_about,
+    }
+    if profile.get("email"):
+        person["email"] = f"mailto:{profile['email']}"
+    if profile.get("location"):
+        person["address"] = {"@type": "PostalAddress", "addressLocality": profile["location"]}
+    if works_for:
+        person["worksFor"] = works_for
+
+    project_items = []
+    for idx, p in enumerate(projects, start=1):
+        item = {
+            "@type": "SoftwareSourceCode",
+            "name": p.get("title") or p.get("name", ""),
+            "description": p.get("desc", ""),
+            "programmingLanguage": p.get("stack", []),
+            "author": {"@id": f"{base_url}/#person"},
+            "url": f"{base_url}/#projects",
+        }
+        if p.get("github") and p["github"] != "#":
+            item["codeRepository"] = p["github"]
+        project_items.append({"@type": "ListItem", "position": idx, "item": item})
+
+    return {
+        "@context": "https://schema.org",
+        "@graph": [
+            {
+                "@type": "WebSite",
+                "@id": f"{base_url}/#website",
+                "url": f"{base_url}/",
+                "name": f"{name} — {role}",
+                "description": profile.get("bio_short", ""),
+                "publisher": {"@id": f"{base_url}/#person"},
+            },
+            {
+                "@type": "ProfilePage",
+                "@id": f"{base_url}/#webpage",
+                "url": f"{base_url}/",
+                "name": f"{name} — {role}",
+                "isPartOf": {"@id": f"{base_url}/#website"},
+                "mainEntity": {"@id": f"{base_url}/#person"},
+            },
+            person,
+            {
+                "@type": "ItemList",
+                "name": f"{name} Featured Projects",
+                "itemListElement": project_items,
+            },
+            {
+                "@type": "BreadcrumbList",
+                "itemListElement": [
+                    {"@type": "ListItem", "position": 1, "name": "About", "item": f"{base_url}/#about"},
+                    {"@type": "ListItem", "position": 2, "name": "Projects", "item": f"{base_url}/#projects"},
+                    {"@type": "ListItem", "position": 3, "name": "Skills", "item": f"{base_url}/#skills"},
+                    {"@type": "ListItem", "position": 4, "name": "Experience", "item": f"{base_url}/#experience"},
+                    {"@type": "ListItem", "position": 5, "name": "Contact", "item": f"{base_url}/#contact"},
+                ],
+            },
+        ],
+    }
+
+
 @app.get("/")
 async def index(request: Request):
+    profile = get_profile_data()
+    projects = get_projects_data()
+    skills = get_skills_data()
+    experience = get_experience_data()
+    structured_data = build_structured_data(get_base_url(request), profile, projects, skills, experience)
     return render_template(
         request,
         "index.html",
-        profile=get_profile_data(),
-        projects=get_projects_data(),
-        skills=get_skills_data(),
-        experience=get_experience_data(),
+        profile=profile,
+        projects=projects,
+        skills=skills,
+        experience=experience,
+        structured_data=structured_data,
     )
 
 
@@ -906,6 +1016,237 @@ async def api_chat(request: Request):
         if text:
             result["reply"] = text
     return result
+
+
+# ─── SEO, AEO & Crawler Discovery Routes ─────────────────────────────
+
+@app.middleware("http")
+async def add_security_and_seo_headers(request: Request, call_next):
+    response = await call_next(request)
+    response.headers.setdefault("X-Content-Type-Options", "nosniff")
+    response.headers.setdefault("X-Frame-Options", "SAMEORIGIN")
+    response.headers.setdefault("Referrer-Policy", "strict-origin-when-cross-origin")
+    return response
+
+
+@app.get("/robots.txt", include_in_schema=False)
+async def robots_txt(request: Request):
+    base_url = get_base_url(request)
+    lines = [
+        "# robots.txt — Search & AI Answer Engine (AEO) Crawler Policy",
+        "User-agent: *",
+        "Allow: /",
+        "Disallow: /admin",
+        "Disallow: /admin/",
+        "Disallow: /login",
+        "Disallow: /logout",
+        "Disallow: /api/",
+        "",
+        "# Explicitly allow AI & Answer Engine crawlers for AEO",
+        "User-agent: GPTBot",
+        "Allow: /",
+        "Disallow: /admin",
+        "Disallow: /login",
+        "Disallow: /api/",
+        "",
+        "User-agent: OAI-SearchBot",
+        "Allow: /",
+        "",
+        "User-agent: ChatGPT-User",
+        "Allow: /",
+        "",
+        "User-agent: ClaudeBot",
+        "Allow: /",
+        "",
+        "User-agent: PerplexityBot",
+        "Allow: /",
+        "",
+        "User-agent: Google-Extended",
+        "Allow: /",
+        "",
+        f"Sitemap: {base_url}/sitemap.xml",
+        f"# LLM-ready context: {base_url}/llms.txt",
+    ]
+    return Response(content="\n".join(lines) + "\n", media_type="text/plain; charset=utf-8")
+
+
+@app.get("/sitemap.xml", include_in_schema=False)
+async def sitemap_xml(request: Request):
+    base_url = get_base_url(request)
+    today = datetime.date.today().isoformat()
+    urls = [
+        (f"{base_url}/", "weekly", "1.0"),
+        (f"{base_url}/llms.txt", "weekly", "0.8"),
+        (f"{base_url}/llms-full.txt", "weekly", "0.7"),
+        (f"{base_url}/download-resume", "monthly", "0.6"),
+    ]
+    entries = []
+    for loc, changefreq, priority in urls:
+        entries.append(
+            "  <url>\n"
+            f"    <loc>{html.escape(loc)}</loc>\n"
+            f"    <lastmod>{today}</lastmod>\n"
+            f"    <changefreq>{changefreq}</changefreq>\n"
+            f"    <priority>{priority}</priority>\n"
+            "  </url>"
+        )
+    xml_body = (
+        '<?xml version="1.0" encoding="UTF-8"?>\n'
+        '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n'
+        + "\n".join(entries)
+        + "\n</urlset>\n"
+    )
+    return Response(content=xml_body, media_type="application/xml; charset=utf-8")
+
+
+@app.get("/llms.txt", include_in_schema=False)
+async def llms_txt(request: Request):
+    base_url = get_base_url(request)
+    profile = get_profile_data()
+    projects = get_projects_data()
+    skills = get_skills_data()
+    experience = get_experience_data()
+
+    name = profile.get("name", "Pankaj Bairagi")
+    role = profile.get("role", "AI Engineer")
+    bio_short = profile.get("bio_short", "")
+    location = profile.get("location", "")
+    status = profile.get("status", "")
+    email = profile.get("email", "")
+    github = profile.get("github", "")
+    linkedin = profile.get("linkedin", "")
+
+    lines = [
+        f"# {name} — {role}",
+        "",
+        f"> {bio_short}" if bio_short else f"> Portfolio of {name}, {role}.",
+        "",
+        "## Quick Facts",
+        f"- **Name**: {name}",
+        f"- **Role**: {role}",
+        f"- **Location**: {location}",
+        f"- **Availability**: {status}",
+        f"- **Email**: {email}",
+        f"- **Website**: {base_url}/",
+        f"- **GitHub**: {github}",
+        f"- **LinkedIn**: {linkedin}",
+        f"- **Resume**: {base_url}/download-resume",
+        "",
+        "## Core Skills & Tech Stack",
+        ", ".join(s["name"] for s in skills) if skills else "Python, FastAPI, Flask, LLMs, RAG",
+        "",
+        "## Featured Projects",
+    ]
+    for p in projects:
+        stack = ", ".join(p.get("stack", []))
+        lines.append(f"- **{p.get('title', p.get('name', ''))}** (`{p.get('name', '')}`): {p.get('desc', '')} [Stack: {stack}]")
+
+    lines.extend(["", "## Experience"])
+    for exp in experience:
+        role_titles = ", ".join(r.get("title", "") for r in exp.get("roles", []))
+        lines.append(f"- **{exp.get('company', '')}** ({exp.get('period', '')}, {exp.get('location', '')}): {role_titles}")
+
+    lines.extend([
+        "",
+        "## Detailed Context & Resources",
+        f"- [Full Portfolio Context & FAQ]({base_url}/llms-full.txt): Complete structured biography, project details, experience bullets, and AEO Q&A.",
+        f"- [Interactive Portfolio]({base_url}/): Main web application with live AI assistant.",
+        f"- [Sitemap]({base_url}/sitemap.xml): XML sitemap for search engines.",
+    ])
+    return Response(content="\n".join(lines) + "\n", media_type="text/plain; charset=utf-8")
+
+
+@app.get("/llms-full.txt", include_in_schema=False)
+async def llms_full_txt(request: Request):
+    base_url = get_base_url(request)
+    profile = get_profile_data()
+    projects = get_projects_data()
+    skills = get_skills_data()
+    experience = get_experience_data()
+
+    name = profile.get("name", "Pankaj Bairagi")
+    role = profile.get("role", "AI Engineer")
+    email = profile.get("email", "")
+    location = profile.get("location", "")
+    status = profile.get("status", "")
+    github = profile.get("github", "")
+    linkedin = profile.get("linkedin", "")
+
+    lines = [
+        f"# {name} — {role} (Full Context for Answer Engines & LLMs)",
+        "",
+        f"Canonical URL: {base_url}/",
+        f"Summary: {profile.get('bio_short', '')}",
+        "",
+        "## Biography & Focus",
+        profile.get("bio_long", "") or profile.get("bio_short", ""),
+        "",
+        "## Contact & Profiles",
+        f"- Email: {email}",
+        f"- Location: {location}",
+        f"- Status: {status}",
+        f"- GitHub: {github}",
+        f"- LinkedIn: {linkedin}",
+        f"- Resume PDF: {base_url}/download-resume",
+        "",
+        "## Technical Skills",
+    ]
+    for s in skills:
+        lines.append(f"- {s['name']}")
+
+    lines.extend(["", "## Projects"])
+    for p in projects:
+        lines.append(f"### {p.get('title', '')} ({p.get('name', '')})")
+        lines.append(p.get("desc", ""))
+        lines.append(f"- Tech Stack: {', '.join(p.get('stack', []))}")
+        if p.get("github") and p["github"] != "#":
+            lines.append(f"- Source Code: {p['github']}")
+        if p.get("demo") and p["demo"] != "#":
+            lines.append(f"- Live Demo: {p['demo']}")
+        lines.append("")
+
+    lines.append("## Work Experience")
+    for exp in experience:
+        lines.append(f"### {exp.get('company', '')} — {exp.get('location', '')} ({exp.get('period', '')})")
+        for r in exp.get("roles", []):
+            lines.append(f"- **{r.get('title', '')}** ({r.get('period', '')})")
+            for b in r.get("bullets", []):
+                lines.append(f"  - {b}")
+        lines.append("")
+
+    skill_preview = ", ".join(s["name"] for s in skills[:10])
+    project_preview = ", ".join(p.get("title", "") for p in projects)
+    lines.extend([
+        "## Frequently Asked Questions (AEO)",
+        f"### Who is {name}?",
+        f"{name} is an {role} based in {location}. {profile.get('bio_short', '')}",
+        "",
+        f"### What technologies does {name} specialize in?",
+        f"{name} works with {skill_preview}, focusing on production LLM architectures, RAG pipelines, Whisper speech AI, and FastAPI/Flask backend systems.",
+        "",
+        f"### What projects has {name} built?",
+        f"Featured projects include: {project_preview}.",
+        "",
+        f"### Is {name} available for hire or freelance work?",
+        f"Current status: {status}. You can reach {name} at {email} or via the contact form at {base_url}/#contact.",
+        "",
+        f"### Where can I download {name}'s resume?",
+        f"Download the latest PDF resume at {base_url}/download-resume.",
+    ])
+    return Response(content="\n".join(lines) + "\n", media_type="text/plain; charset=utf-8")
+
+
+@app.get("/.well-known/security.txt", include_in_schema=False)
+async def security_txt(request: Request):
+    base_url = get_base_url(request)
+    profile = get_profile_data()
+    email = profile.get("email", "nickvshnv@gmail.com")
+    content = (
+        f"Contact: mailto:{email}\n"
+        f"Canonical: {base_url}/.well-known/security.txt\n"
+        "Preferred-Languages: en\n"
+    )
+    return Response(content=content, media_type="text/plain; charset=utf-8")
 
 
 if __name__ == "__main__":
