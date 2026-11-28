@@ -1044,14 +1044,19 @@ body.term-collapsed .editor-scroll-pill {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 32px;
+  gap: 48px;
   width: 100%;
+  max-width: 960px;
   flex-wrap: nowrap;
 }
 .hero-left {
-  flex: 0 0 490px;
-  max-width: 510px;
+  flex: 1 1 auto;
+  max-width: 540px;
   order: 1;
+}
+.hero-flex-layout .profile-ide-card {
+  order: 2;
+  width: 310px;
 }
 
 /* ── 3D Transformer Stage ── */
@@ -1519,6 +1524,66 @@ body.term-collapsed .editor-scroll-pill {
   flex-direction: column;
   gap: 10px;
   max-width: 860px;
+}
+
+/* ── IDE Framed Portrait Card ── */
+.profile-ide-card {
+  width: 290px;
+  flex-shrink: 0;
+  background: #1a1a1a;
+  border: 1px solid var(--border);
+  overflow: hidden;
+}
+.profile-ide-top {
+  height: 30px;
+  border-bottom: 1px solid var(--border);
+}
+.profile-ide-photo {
+  width: 100%;
+  aspect-ratio: 4 / 3.4;
+  background: #141414;
+  overflow: hidden;
+}
+.profile-ide-photo img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: center top;
+  display: block;
+}
+.profile-ide-spacer {
+  height: 28px;
+  border-top: 1px solid var(--border);
+}
+.profile-ide-footer {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 16px;
+  padding: 16px 18px;
+  border-top: 1px solid var(--border);
+  background: #181818;
+}
+.profile-follow-label {
+  font-family: var(--font-mono);
+  font-size: 12.5px;
+  color: var(--text-dim);
+}
+.profile-follow-links {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+.profile-follow-links a {
+  color: #e4e4e4;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  transition: color 0.15s ease, transform 0.15s ease;
+}
+.profile-follow-links a:hover {
+  color: var(--accent);
+  transform: translateY(-1px);
 }
 .exp-item {
   display: flex;
@@ -2142,6 +2207,14 @@ body:not(.ai-collapsed) .chat-fab {
   .contact-form-modern input,
   .contact-form-modern textarea {
     font-size: 16px; /* Prevents auto-zoom on iOS Safari */
+  }
+}
+
+@media (max-width: 960px) {
+  .hero-flex-layout .profile-ide-card {
+    order: 2;
+    width: 100%;
+    max-width: 340px;
   }
 }
 

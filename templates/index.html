@@ -6,16 +6,12 @@
 <!-- ░░ SECTION: about.py (Hero) ░░ -->
 <section id="about" class="code-section hero-section-3d">
   <div class="code-content full hero-inner-content">
-    <p class="code-comment"># about.py — neural systems &amp; AI engineer</p>
+    <p class="code-comment"># about.py — attention is all you need</p>
     <p class="code-line"><span class="kw">class</span> <span class="cls">Developer</span>:</p>
     <div class="code-indent hero-flex-layout">
       
       <!-- Left Column: Clean, Light, Readable -->
       <div class="hero-left">
-        <div class="status-pill-modern">
-          <span class="live-dot"></span> {{ profile.status }} · {{ profile.location }}
-        </div>
-
         <h1 class="hero-name"><span class="highlight-grad">{{ profile.name }}</span></h1>
         
         <p class="hero-role"><span class="kw">self</span>.role = <span class="str">"{{ profile.role }}"</span></p>
@@ -55,28 +51,28 @@
 
       </div>
 
-      <!-- Right Column: 3D Transformer Architecture Visualization -->
-      <div class="hero-3d-stage" id="hero-3d-stage">
-        <canvas id="hero-canvas" class="hero-3d-canvas"></canvas>
-        <div class="transformer-hud">
-          <span class="hud-tag">LLM</span>
-          <span class="hud-tag">NLP</span>
-          <span class="hud-tag">Vision</span>
-          <span class="hud-tag">Multimodal</span>
+      <!-- Right Column: IDE Framed Portrait Card -->
+      <aside class="profile-ide-card" aria-label="Developer Portrait">
+        <div class="profile-ide-top"></div>
+        <div class="profile-ide-photo">
+          <img src="{{ url_for('static', filename='images/profile.jpg') }}" alt="{{ profile.name }}" loading="eager" />
         </div>
-        <div class="transformer-title-hud">
-          <div class="tt-label">DEEP LEARNING</div>
-          <div class="tt-main">Transformer <span>Architecture</span></div>
-          <div class="tt-sub">The model behind modern AI</div>
+        <div class="profile-ide-spacer"></div>
+        <div class="profile-ide-footer">
+          <span class="profile-follow-label">Follow me:</span>
+          <div class="profile-follow-links">
+            <a href="{{ profile.github }}" target="_blank" rel="noopener" title="GitHub" aria-label="GitHub">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M12 0C5.37 0 0 5.37 0 12c0 5.31 3.435 9.795 8.205 11.385.6.105.825-.255.825-.57 0-.285-.015-1.23-.015-2.235-3.015.555-3.795-.735-4.035-1.41-.135-.345-.72-1.41-1.23-1.695-.42-.225-1.02-.78-.015-.795.945-.015 1.62.87 1.845 1.23 1.08 1.815 2.805 1.305 3.495.99.105-.78.42-1.305.765-1.605-2.67-.3-5.46-1.335-5.46-5.925 0-1.305.465-2.385 1.23-3.225-.12-.3-.54-1.53.12-3.18 0 0 1.005-.315 3.3 1.23.96-.27 1.98-.405 3-.405s2.04.135 3 .405c2.295-1.56 3.3-1.23 3.3-1.23.66 1.65.24 2.88.12 3.18.765.84 1.23 1.905 1.23 3.225 0 4.605-2.805 5.625-5.475 5.925.435.375.81 1.095.81 2.22 0 1.605-.015 2.895-.015 3.3 0 .315.225.69.825.57A12.02 12.02 0 0 0 24 12c0-6.63-5.37-12-12-12z"/></svg>
+            </a>
+            <a href="{{ profile.linkedin }}" target="_blank" rel="noopener" title="LinkedIn" aria-label="LinkedIn">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M19 3a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h14m-.5 15.5v-5.3a3.26 3.26 0 0 0-3.26-3.26c-.85 0-1.84.52-2.28 1.3v-1.11h-2.79v8.37h2.79v-4.93c0-.77.62-1.4 1.39-1.4a1.4 1.4 0 0 1 1.4 1.4v4.93h2.75M6.88 8.56a1.68 1.68 0 0 0 1.68-1.68c0-.93-.75-1.69-1.68-1.69a1.69 1.69 0 0 0-1.69 1.69c0 .93.76 1.68 1.69 1.68m1.39 9.94v-8.37H5.5v8.37h2.77z"/></svg>
+            </a>
+            <a href="mailto:{{ profile.email }}" title="Email" aria-label="Email">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"></path><polyline points="22,6 12,13 2,6"></polyline></svg>
+            </a>
+          </div>
         </div>
-        <div class="transformer-legend">
-          <span class="leg-item"><span class="leg-dot" style="background:#4ec9b0;"></span>Multi-Head Attention</span>
-          <span class="leg-item"><span class="leg-dot" style="background:#9b8cff;"></span>N Transformer Layers</span>
-          <span class="leg-item"><span class="leg-dot" style="background:#569cd6;"></span>Residual Connections</span>
-          <span class="leg-item"><span class="leg-dot" style="background:#ce9178;"></span>Layer Normalization</span>
-        </div>
-        <div class="transformer-interact-hint">drag · hover · click</div>
-      </div>
+      </aside>
 
     </div>
   </div>
