@@ -1029,7 +1029,7 @@ async def add_security_and_seo_headers(request: Request, call_next):
     return response
 
 
-@app.get("/robots.txt", include_in_schema=False)
+@app.api_route("/robots.txt", methods=["GET", "HEAD"], include_in_schema=False)
 async def robots_txt(request: Request):
     base_url = get_base_url(request)
     lines = [
@@ -1070,7 +1070,7 @@ async def robots_txt(request: Request):
     return Response(content="\n".join(lines) + "\n", media_type="text/plain; charset=utf-8")
 
 
-@app.get("/sitemap.xml", include_in_schema=False)
+@app.api_route("/sitemap.xml", methods=["GET", "HEAD"], include_in_schema=False)
 async def sitemap_xml(request: Request):
     base_url = get_base_url(request)
     today = datetime.date.today().isoformat()
@@ -1099,7 +1099,7 @@ async def sitemap_xml(request: Request):
     return Response(content=xml_body, media_type="application/xml; charset=utf-8")
 
 
-@app.get("/llms.txt", include_in_schema=False)
+@app.api_route("/llms.txt", methods=["GET", "HEAD"], include_in_schema=False)
 async def llms_txt(request: Request):
     base_url = get_base_url(request)
     profile = get_profile_data()
@@ -1156,7 +1156,7 @@ async def llms_txt(request: Request):
     return Response(content="\n".join(lines) + "\n", media_type="text/plain; charset=utf-8")
 
 
-@app.get("/llms-full.txt", include_in_schema=False)
+@app.api_route("/llms-full.txt", methods=["GET", "HEAD"], include_in_schema=False)
 async def llms_full_txt(request: Request):
     base_url = get_base_url(request)
     profile = get_profile_data()
